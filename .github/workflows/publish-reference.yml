@@ -1,0 +1,29 @@
+name: Publish reference branch
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-reference
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Subtree split reference/
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Split and push
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git subtree split --prefix=reference -b reference
+          # subtree split is deterministic, so each run fast-forwards the
+          # previous one; Projects merge this branch, they never push to it.
+          git push origin reference
