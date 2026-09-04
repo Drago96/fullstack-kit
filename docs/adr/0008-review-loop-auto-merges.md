@@ -1,0 +1,11 @@
+# The Review Loop gates every PR and auto-merges reviewed-green ones
+
+The spec (#1) said "humans triage and merge; Loops only open PRs". That made every PR, including the trivial ones Loops produce, a human's job. We decided instead that a Review Loop runs on every non-draft PR in the Kit and in every Project, including maintainer PRs, as a required GitHub status check, and that PRs enable GitHub's native auto-merge (squash). A PR merges the moment CI and the review are green; no approval is required. In a Project this deploys to production, which we accept: the E2E and API tests are the gate, and the review is a second reader.
+
+The reviewer is the Kit's own `/code-review` (mattpocock-skills): the Standards axis reads Stack Rules plus the Fowler smell baseline, the Spec axis reads the linked issue. `ponytail-review` runs as a third, never-blocking axis for over-engineering. Blocking Findings are Spec findings and hard violations of a documented Stack Rule; smells never block. A PR with no linked issue gets a Standards-only review and can merge. Both axes and the fix step run on Opus.
+
+On blocking Findings an agent Fix Round pushes a fix to the PR branch and the review re-runs, at most two Fix Rounds (three reviews). If Findings remain, the PR is labelled `ready-for-human` with the unresolved Findings pinned at the top. A maintainer's "Request changes" review also triggers a Fix Round, and the status check stays red while that review is outstanding, so auto-merge can never override a human veto.
+
+Rejected: the Payhawk "thermo-nuclear" reviewer (restructure-ambitious; wrong for an unattended loop under the smallest-diff rule, and not installable in Project CI). Rejected: keeping merge human and using the review only to sort PRs, because the whole point of the Lesson (#16) was that a human should not have to look at a PR that needs no judgement.
+
+Consequence: every change to the Kit, interactive or Loop, lands via a PR on an `<issue>-<slug>` branch. Direct pushes to `master` are disabled by branch protection. Spec #1 stories 33, 36 and 42 ("PR, never merge", Loop PRs labelled `ready-for-human`) are superseded: Loop PRs are labelled `ready-for-human` only when the Review Loop gives up.

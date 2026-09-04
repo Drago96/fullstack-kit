@@ -54,6 +54,18 @@ _Avoid_: Self-learning loop, auto-improve
 The Loop in every Project that merges the Kit's latest Reference Project into the Project as a pull request.
 _Avoid_: Update, upgrade, pull from kit
 
+**Review Loop**:
+The Loop that reviews every pull request against Stack Rules and its linked issue, fixes what it can, and merges when CI and the review are green. Hands a PR to a human only when it cannot get it green.
+_Avoid_: Auto-merge bot, PR bot, code review action
+
+**Finding**:
+One reviewer observation on a pull request. Blocking Findings (a Spec gap or a hard Stack Rule violation) stop a merge; smells do not.
+_Avoid_: Comment, nit, issue, violation
+
+**Fix Round**:
+One agent attempt to resolve the blocking Findings on a pull request by pushing to its branch. A PR gets at most two.
+_Avoid_: Retry, iteration, re-review
+
 ## Testing
 
 **E2E Test**:

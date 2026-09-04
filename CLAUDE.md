@@ -28,4 +28,8 @@ gh auth switch -u Drago96 && gh issue list --label ready-for-agent --state open 
         | "#\(.number) \(.title)"'
 ```
 
-Order of work: #2 first, then #7 (Kit Loop) so the remaining tickets get implemented unattended in CI. After each `/implement`, `/clear` before the next.
+Order of work: #2 first, then #16 (Review Loop, ADR 0008), then #7 (Kit Loop) so the remaining tickets get implemented and merged unattended in CI. After each `/implement`, `/clear` before the next.
+
+## Every change lands via a pull request
+
+Never commit to `master`. Work on a branch named `<issue>-<slug>` (e.g. `2-kit-skeleton`), push it, and open a PR whose body says `Closes #<issue>`. This holds for interactive sessions and Loops alike (ADR 0008).
