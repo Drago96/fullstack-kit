@@ -1,0 +1,14 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignore": ["packages/api-client/src/schema.ts"],
+  "includeEntryExports": true,
+  "workspaces": {
+    "apps/api": {
+      "entry": ["src/main.ts", "src/write-openapi.ts"],
+      "paths": { "@reference/contract": ["../../packages/contract/src/index.ts"] }
+    },
+    "apps/web": {
+      "paths": { "@reference/api-client": ["../../packages/api-client/src/index.ts"] }
+    }
+  }
+}
