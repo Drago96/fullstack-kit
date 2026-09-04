@@ -19,9 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Kit Loop issue picker
+      - name: Loop scripts
         working-directory: .
-        run: bash scripts/kit-loop/pick.test.sh
+        run: |
+          bash scripts/review-loop/decide.test.sh
+          bash scripts/kit-loop/pick.test.sh
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: reference/package.json
