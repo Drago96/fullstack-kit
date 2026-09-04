@@ -11,3 +11,7 @@ Default five labels (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for
 ### Domain docs
 
 Single-context: `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+## GitHub account
+
+This repo and every Project belong to the personal account `Drago96`. Always run `gh auth switch -u Drago96` before any `gh` command; the active account reverts to the work account between shells. Never push to `dproychev-payhawk`.
