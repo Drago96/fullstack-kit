@@ -16,10 +16,11 @@ The Kit repo is always `Drago96/fullstack-kit` - pass `--repo` so this works fro
 
    ```bash
    gh pr view --json url --jq .url 2>/dev/null \
-     || echo "$(gh repo view --json url --jq .url)/commit/$(git rev-parse HEAD)"
+     || { git branch --remotes --contains HEAD | grep -q . \
+          && echo "$(gh repo view --json url --jq .url)/commit/$(git rev-parse HEAD)"; }
    ```
 
-   Prefer the PR when the work sits on a pushed branch, otherwise the commit.
+   Prefer the PR; otherwise the commit, but only once it is pushed. If neither prints anything, push first - a link nobody can open is not a Source.
 3. Write the body to a file with these four sections, in this order, nothing else:
 
    ```markdown
@@ -51,7 +52,7 @@ The Kit repo is always `Drago96/fullstack-kit` - pass `--repo` so this works fro
 
 ## Phase-boundary prompt
 
-Other skills fire this prompt after implementing a ticket, after reviewing a Loop PR, and after debugging:
+The Kit's implement, review and debugging skills, once they exist, will fire this prompt at their phase boundaries:
 
 > Anything here belongs in the Kit?
 
