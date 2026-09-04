@@ -22,8 +22,10 @@ At the start of every session, report the frontier and offer to `/implement` the
 
 ```
 gh auth switch -u Drago96 && gh issue list --label ready-for-agent --state open \
-  --json number,title,issueDependenciesSummary \
-  --jq '.[] | select(.issueDependenciesSummary.blockedBy == 0) | "#\(.number) \(.title)"'
+  --json number,title,blockedBy \
+  --jq '.[] | select(.title | startswith("Spec:") | not)
+        | select([.blockedBy.nodes[]? | select(.state=="OPEN")] | length == 0)
+        | "#\(.number) \(.title)"'
 ```
 
 Order of work: #2 first, then #7 (Kit Loop) so the remaining tickets get implemented unattended in CI. After each `/implement`, `/clear` before the next.
