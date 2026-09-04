@@ -10,13 +10,26 @@ defaults:
     working-directory: reference
 
 env:
-  # next build validates env; the value is never used at build time (the page is dynamic).
+  # next build bakes this into the /api rewrite; the E2E servers listen on the same port.
   API_URL: http://localhost:3001
+  DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
 
 jobs:
   reference:
     name: Reference Project
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - name: Loop scripts
