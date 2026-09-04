@@ -9,6 +9,10 @@ A Claude Code plugin holding the Skills, Workflows and Loops for building and ru
 /plugin install fullstack-kit
 ```
 
+## Skills
+
+- `harvest` — from any Project session, "harvest this" files a Lesson as a `needs-triage` issue on this repo (What happened / Kit part / Proposed change / Source). Other skills fire its phase-boundary prompt ("anything here belongs in the Kit?") after implementing, after reviewing a Loop PR, and after debugging.
+
 ## Composed plugins
 
 The Kit does not vendor these. Install them alongside it:
