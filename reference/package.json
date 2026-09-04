@@ -1,0 +1,23 @@
+{
+  "name": "reference",
+  "private": true,
+  "packageManager": "pnpm@11.16.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "typecheck": "turbo run typecheck",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "api-test": "turbo run api-test",
+    "e2e": "turbo run e2e",
+    "generate": "turbo run generate"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.12",
+    "turbo": "2.10.12",
+    "typescript": "5.9.3"
+  }
+}
