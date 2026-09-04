@@ -61,9 +61,7 @@ jobs:
           rounds=$(git log "origin/$BASE_REF..HEAD" --format=%s | grep -c '^review-loop: fix round' || true)
           changes=false
           [ "$(gh pr view "$PR_NUMBER" --json reviewDecision --jq .reviewDecision)" = CHANGES_REQUESTED ] && changes=true
-          echo "issue=$issue" >> "$GITHUB_OUTPUT"
-          echo "rounds=$rounds" >> "$GITHUB_OUTPUT"
-          echo "changes=$changes" >> "$GITHUB_OUTPUT"
+          printf 'issue=%s\nrounds=%s\nchanges=%s\n' "$issue" "$rounds" "$changes" >> "$GITHUB_OUTPUT"
 
       - uses: anthropics/claude-code-action@v1
         with:
