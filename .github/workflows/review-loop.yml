@@ -1,10 +1,17 @@
 name: Review Loop
 
+# Runs in the Kit on its own PRs, and in every Project as a reusable workflow (see reference/.github/workflows/review-loop.yml).
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
   pull_request_review:
-    types: [submitted]
+    types: [submitted, dismissed]
+  workflow_call:
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
+      REVIEW_LOOP_GH_TOKEN:
+        required: false
 
 concurrency:
   group: review-loop-${{ github.event.pull_request.number }}
@@ -19,51 +26,50 @@ permissions:
 jobs:
   review:
     name: Review Loop
-    # Drafts are skipped. On review events only "changes requested" matters.
-    if: >-
-      github.event.pull_request.draft == false &&
-      (github.event_name == 'pull_request' || github.event.review.state == 'changes_requested')
+    # Drafts cannot merge, so they are skipped. Every human review event (submitted or dismissed) re-runs the check;
+    # the Loop's own review is posted with github.token and never triggers a run.
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
       BASE_REF: ${{ github.event.pull_request.base.ref }}
-      # Kit repo: the checkout is the Kit. Projects clone it instead (see reference/.github/workflows/review-loop.yml).
-      KIT_DIR: ${{ github.workspace }}
+      # The skill, Stack Rules and scripts always come from the Kit's master, also in the Kit itself.
+      KIT_DIR: ${{ github.workspace }}/../kit
       OUT_DIR: ${{ github.workspace }}/../review-loop
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
-          # ponytail: fix commits pushed with github.token do not re-trigger CI; set REVIEW_LOOP_GH_TOKEN (fine-grained PAT, contents+pull-requests write) to lift that ceiling.
+          # Fix commits must re-trigger CI and this workflow; pushes made with github.token do not.
+          # Without REVIEW_LOOP_GH_TOKEN a fix round leaves the check red until someone re-runs it.
           token: ${{ secrets.REVIEW_LOOP_GH_TOKEN || github.token }}
 
-      - name: Enable auto-merge (squash)
-        run: gh pr merge "$PR_NUMBER" --auto --squash || echo "auto-merge not available on this repo; run scripts/review-loop/setup-repo.sh"
+      - name: Fetch the Kit
+        run: |
+          rm -rf "$KIT_DIR" && git clone -q --depth 1 https://github.com/Drago96/fullstack-kit "$KIT_DIR"
+          mkdir -p "$OUT_DIR"
 
       - name: Gather context
         id: ctx
         run: |
           body=$(gh pr view "$PR_NUMBER" --json body --jq .body)
-          issue=$(printf '%s\n' "$body" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | head -1 | grep -oE '[0-9]+' || true)
+          issue=$( { printf '%s\n' "$body"; git log "origin/$BASE_REF..HEAD" --format=%B; } \
+            | grep -oiE '(closes|fixes|resolves) #[0-9]+' | head -1 | grep -oE '[0-9]+' || true)
+          # ponytail: rounds are counted from commit subjects, so a rebase resets them; fine while PRs are short-lived.
           rounds=$(git log "origin/$BASE_REF..HEAD" --format=%s | grep -c '^review-loop: fix round' || true)
-          changes=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/reviews" \
-            --jq '[group_by(.user.login)[] | max_by(.submitted_at) | select(.state=="CHANGES_REQUESTED")] | length > 0')
+          changes=false
+          [ "$(gh pr view "$PR_NUMBER" --json reviewDecision --jq .reviewDecision)" = CHANGES_REQUESTED ] && changes=true
           echo "issue=$issue" >> "$GITHUB_OUTPUT"
           echo "rounds=$rounds" >> "$GITHUB_OUTPUT"
           echo "changes=$changes" >> "$GITHUB_OUTPUT"
-          mkdir -p "$OUT_DIR"
 
       - uses: anthropics/claude-code-action@v1
-        env:
-          ISSUE_NUMBER: ${{ steps.ctx.outputs.issue }}
-          FIX_ROUNDS: ${{ steps.ctx.outputs.rounds }}
-          CHANGES_REQUESTED: ${{ steps.ctx.outputs.changes }}
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
-            Load and follow the `review-loop` skill from the plugin directory exactly. Environment for it:
+            Use the Skill tool to load `review-loop` and follow it exactly. Its variables:
             PR_NUMBER=${{ env.PR_NUMBER }} BASE_REF=${{ env.BASE_REF }} ISSUE_NUMBER=${{ steps.ctx.outputs.issue }}
             FIX_ROUNDS=${{ steps.ctx.outputs.rounds }} CHANGES_REQUESTED=${{ steps.ctx.outputs.changes }}
             KIT_DIR=${{ env.KIT_DIR }} OUT_DIR=${{ env.OUT_DIR }} GITHUB_REPOSITORY=${{ github.repository }}
@@ -71,27 +77,33 @@ jobs:
             --model claude-opus-5
             --max-turns 60
             --plugin-dir ${{ env.KIT_DIR }}
-            --allowedTools "Read,Write,Edit,Glob,Grep,Bash(git *),Bash(gh issue view *),Bash(gh api repos/*/pulls/*/reviews),Bash(bash */decide.sh *),Bash(pnpm *),Bash(node *)"
+            --allowedTools "Skill,Read,Write,Edit,Glob,Grep,Bash(git *),Bash(gh issue view *),Bash(gh api *),Bash(bash *decide.sh*),Bash(pnpm *),Bash(node *)"
 
-      - name: Post review and decide
+      - name: Decide
         id: decide
         run: |
           test -f "$OUT_DIR/verdict.json" || { echo "::error::review produced no verdict"; exit 1; }
           blocking=$(jq -r .blocking "$OUT_DIR/verdict.json")
-          decision=$(bash scripts/review-loop/decide.sh "$blocking" "${{ steps.ctx.outputs.rounds }}" "${{ steps.ctx.outputs.changes }}")
+          [[ "$blocking" =~ ^[0-9]+$ ]] || { echo "::error::verdict.blocking is not an integer: $blocking"; exit 1; }
+          decision=$(bash "$KIT_DIR/scripts/review-loop/decide.sh" "$blocking" "${{ steps.ctx.outputs.rounds }}" "${{ steps.ctx.outputs.changes }}")
+          # A fix round that changed nothing cannot converge: hand off instead of looping.
+          if [ "$decision" = fix ] && git diff --quiet -- . ':!.github/workflows' && [ -z "$(git ls-files --others --exclude-standard -- . ':!.github/workflows')" ]; then decision=handoff; fi
           echo "decision=$decision" >> "$GITHUB_OUTPUT"
-          { echo "<!-- review-loop -->"; echo "**Review Loop:** $decision (blocking: $blocking, fix rounds: ${{ steps.ctx.outputs.rounds }}/2)"; echo; cat "$OUT_DIR/review.md"; } > "$OUT_DIR/comment.md"
+          { echo "**Review Loop:** $decision (blocking: $blocking, fix rounds: ${{ steps.ctx.outputs.rounds }}/2)"; echo; cat "$OUT_DIR/review.md"; } > "$OUT_DIR/comment.md"
           event=COMMENT; [ "$decision" = pass ] && event=APPROVE
           gh pr review "$PR_NUMBER" --event "$event" --body-file "$OUT_DIR/comment.md" 2>/dev/null \
             || gh pr comment "$PR_NUMBER" --body-file "$OUT_DIR/comment.md"
+
+      - name: Enable auto-merge (squash)
+        if: steps.decide.outputs.decision == 'pass'
+        run: gh pr merge "$PR_NUMBER" --auto --squash || echo "::warning::auto-merge unavailable; run scripts/review-loop/setup-repo.sh"
 
       - name: Fix round
         if: steps.decide.outputs.decision == 'fix'
         run: |
           git config user.name "review-loop[bot]"
           git config user.email "review-loop@users.noreply.github.com"
-          git add -A
-          git diff --cached --quiet && { echo "::error::fix round produced no changes"; exit 1; }
+          git add -A -- . ':!.github/workflows'
           git commit -m "review-loop: fix round $(( ${{ steps.ctx.outputs.rounds }} + 1 ))"
           git push
           echo "::error::blocking findings; pushed a fix, the next run re-reviews"; exit 1
@@ -99,6 +111,5 @@ jobs:
       - name: Hand off to a human
         if: steps.decide.outputs.decision == 'handoff'
         run: |
-          gh pr edit "$PR_NUMBER" --add-label ready-for-human
-          gh pr comment "$PR_NUMBER" --body "$(printf '## Needs a human\n\nReview Loop gave up after 2 fix rounds. Unresolved blocking Findings:\n\n%s' "$(grep -F '[blocking]' "$OUT_DIR/review.md" || echo '(see review above)')")"
+          bash "$KIT_DIR/scripts/review-loop/handoff.sh" "$PR_NUMBER" "$OUT_DIR/review.md"
           echo "::error::unresolved blocking findings"; exit 1

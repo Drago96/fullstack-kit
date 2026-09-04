@@ -39,6 +39,6 @@ Write `$OUT_DIR/verdict.json`: `{"blocking": <count of blocking Findings>, "summ
 
 ## 7. Fix round (only when told)
 
-Run `bash $KIT_DIR/scripts/review-loop/decide.sh <blocking> $FIX_ROUNDS $CHANGES_REQUESTED`. If it prints `fix`: resolve every blocking Finding with the smallest change that satisfies the rule or the spec, run the repo's typecheck and the relevant tests, and stage nothing. Do not commit or push; the workflow commits your working tree as `review-loop: fix round N`. Then rewrite `review.md` with a `## Fix round` section listing what you changed. Never touch `.github/workflows/`.
+Run `bash $KIT_DIR/scripts/review-loop/decide.sh <blocking> $FIX_ROUNDS $CHANGES_REQUESTED`. If it prints `fix`: resolve every blocking Finding with the smallest change that satisfies the rule or the spec, run the repo's typecheck and the relevant tests, and stage nothing. Do not commit or push; the workflow commits your working tree as `review-loop: fix round N`. Then append a `## Fix round` section to `review.md` listing what you changed. Never rewrite `verdict.json` after a fix: the verdict describes the code you reviewed, the next run judges the fix. Never touch `.github/workflows/`, `STACK-RULES.md` or any skill file.
 
 If it prints `pass` or `handoff`, change nothing.

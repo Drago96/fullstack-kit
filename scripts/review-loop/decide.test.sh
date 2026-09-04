@@ -14,4 +14,5 @@ check 1 1 false fix       # second and last fix round
 check 1 2 false handoff   # rounds exhausted: ready-for-human
 check 0 0 true  fix       # human requested changes, no agent findings: fix round
 check 0 2 true  handoff   # human requested changes, rounds exhausted
+if bash decide.sh null 0 false >/dev/null 2>&1; then echo 'FAIL decide null: expected non-zero exit'; fail=1; else echo 'ok   decide null -> error'; fi
 exit $fail
