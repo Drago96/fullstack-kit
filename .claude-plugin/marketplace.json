@@ -1,0 +1,14 @@
+{
+  "$schema": "https://www.schemastore.org/claude-code-marketplace.json",
+  "name": "fullstack-kit",
+  "description": "Skills, workflows and loops for personal full-stack projects on one fixed, free stack.",
+  "owner": { "name": "Drago96" },
+  "plugins": [
+    {
+      "name": "fullstack-kit",
+      "description": "Skills, workflows and loops for building and running personal full-stack production-ready projects.",
+      "source": "./",
+      "category": "development"
+    }
+  ]
+}

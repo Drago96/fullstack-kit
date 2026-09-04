@@ -1,0 +1,9 @@
+{
+  "name": "fullstack-kit",
+  "version": "0.1.0",
+  "description": "Skills, workflows and loops for building and running personal full-stack production-ready projects on one fixed, free stack.",
+  "author": { "name": "Drago96", "url": "https://github.com/Drago96" },
+  "repository": "https://github.com/Drago96/fullstack-kit",
+  "license": "MIT",
+  "keywords": ["fullstack", "nestjs", "nextjs", "turborepo", "scaffold"]
+}

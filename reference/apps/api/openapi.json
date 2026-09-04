@@ -1,0 +1,62 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/hello": {
+      "get": {
+        "operationId": "HelloController_hello",
+        "parameters": [
+          {
+            "name": "name",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 50,
+              "default": "World",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelloResponseDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Hello"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "api",
+    "description": "",
+    "version": "0.0.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "HelloResponseDto_Output": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

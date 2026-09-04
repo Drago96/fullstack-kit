@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+defaults:
+  run:
+    working-directory: reference
+
+env:
+  # next build validates env; the value is never used at build time (the page is dynamic).
+  API_URL: http://localhost:3001
+
+jobs:
+  reference:
+    name: Reference Project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: reference/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: reference/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: Lint and format
+        run: pnpm biome ci .
+      - name: Typecheck, build, unit tests, API tests
+        run: pnpm turbo run typecheck build test api-test
+      - name: Client drift check
+        run: |
+          pnpm turbo run generate
+          git diff --exit-code -- apps/api/openapi.json packages/api-client
+      - name: Install Playwright
+        run: pnpm --filter web exec playwright install --with-deps chromium
+      - name: E2E tests
+        run: pnpm turbo run e2e
+      - name: Docker build
+        run: docker build -f apps/api/Dockerfile .
