@@ -7,6 +7,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: publish-reference
+  cancel-in-progress: true
+
 jobs:
   publish:
     name: Subtree split reference/
@@ -20,6 +24,6 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git subtree split --prefix=reference -b reference
-          # The branch is regenerated from scratch every run, so its history is
-          # rewritten by design (ADR 0006); Projects merge it, they never push to it.
-          git push --force origin reference
+          # subtree split is deterministic, so each run fast-forwards the
+          # previous one; Projects merge this branch, they never push to it.
+          git push origin reference
