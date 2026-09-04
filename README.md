@@ -33,3 +33,7 @@ pnpm --filter web start      # http://localhost:3000
 Workspaces: `apps/api` (NestJS), `apps/web` (Next.js App Router), `packages/contract` (Zod schemas, the source of truth), `packages/api-client` (typed client generated from the OpenAPI spec Nest derives from the Contract).
 
 Adding an endpoint: schema in `packages/contract` → controller in `apps/api` → `pnpm turbo run generate` → commit the regenerated `packages/api-client`. CI fails on drift.
+
+## Review Loop
+
+Every non-draft PR is reviewed headless by the `review-loop` skill (`.github/workflows/review-loop.yml`) against `STACK-RULES.md` and its linked issue, fixed up to twice, and auto-merged when CI and the review are green (ADR 0008). One-time setup per repo: set the `CLAUDE_CODE_OAUTH_TOKEN` secret (`claude setup-token`), optionally `REVIEW_LOOP_GH_TOKEN` (fine-grained PAT so fix commits re-trigger CI), then run `bash scripts/review-loop/setup-repo.sh <owner/repo>`.
