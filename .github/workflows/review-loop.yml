@@ -96,7 +96,13 @@ jobs:
 
       - name: Enable auto-merge (squash)
         if: steps.decide.outputs.decision == 'pass'
-        run: gh pr merge "$PR_NUMBER" --auto --squash || echo "::warning::auto-merge unavailable; run scripts/review-loop/setup-repo.sh"
+        # Only when this check is required on the base branch: without that, --auto merges immediately, before CI.
+        run: |
+          if gh api "repos/$GITHUB_REPOSITORY/branches/$BASE_REF/protection/required_status_checks" --jq '.contexts' 2>/dev/null | grep -q '"Review Loop"'; then
+            gh pr merge "$PR_NUMBER" --auto --squash
+          else
+            echo "::warning::'Review Loop' is not a required check on $BASE_REF; not arming auto-merge. Run scripts/review-loop/setup-repo.sh"
+          fi
 
       - name: Fix round
         if: steps.decide.outputs.decision == 'fix'
