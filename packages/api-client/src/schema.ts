@@ -20,6 +20,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["NotesController_list"];
+        put?: never;
+        post: operations["NotesController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -27,6 +43,26 @@ export interface components {
         HelloResponseDto_Output: {
             message: string;
         };
+        CreateNoteDto: {
+            title: string;
+            body: string;
+        };
+        NoteDto_Output: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            body: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        NoteListDto_Output: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            body: string;
+            /** Format: date-time */
+            createdAt: string;
+        }[];
     };
     responses: never;
     parameters: never;
@@ -53,6 +89,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HelloResponseDto_Output"];
+                };
+            };
+        };
+    };
+    NotesController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NoteListDto_Output"];
+                };
+            };
+        };
+    };
+    NotesController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateNoteDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NoteDto_Output"];
                 };
             };
         };

@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive(),
+  DATABASE_URL: z.string().min(1),
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent']).default('info'),
 });
 

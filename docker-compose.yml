@@ -1,0 +1,9 @@
+# Local Postgres for development and for running the API and E2E tests.
+# CI uses a GitHub Actions service container with the same image instead.
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5432:5432'

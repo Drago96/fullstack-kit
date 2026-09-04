@@ -3,3 +3,6 @@ packages:
   - packages/*
 allowBuilds:
   "@scarf/scarf": false
+  # drizzle-kit pulls esbuild in; pnpm installs its platform binary as an optional
+  # dependency, so the postinstall that would fetch one is not needed.
+  esbuild: false

@@ -4,6 +4,7 @@ import type { TestProject } from 'vitest/node';
 declare module 'vitest' {
   export interface ProvidedContext {
     apiUrl: string;
+    databaseUrl: string;
   }
 }
 
@@ -24,12 +25,15 @@ async function waitForApi(child: ChildProcess) {
 }
 
 export default async function startApi(project: TestProject) {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) throw new Error('DATABASE_URL is required to run the API tests');
   const child = spawn('node', ['dist/main.js'], {
     env: { ...process.env, PORT: String(PORT), LOG_LEVEL: 'silent' },
     stdio: ['ignore', 'ignore', 'inherit'],
   });
   await waitForApi(child);
   project.provide('apiUrl', apiUrl);
+  project.provide('databaseUrl', databaseUrl);
   return () => {
     child.kill();
   };
