@@ -50,6 +50,10 @@ _Avoid_: Sync back, upstream, report
 The Loop on the Kit repo that turns `ready-for-agent` Lessons into pull requests. Triage stays human.
 _Avoid_: Self-learning loop, auto-improve
 
+**Sync Loop**:
+The Loop in every Project that merges the Kit's latest Reference Project into the Project as a pull request.
+_Avoid_: Update, upgrade, pull from kit
+
 ## Testing
 
 **E2E Test**:
