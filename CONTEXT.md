@@ -33,7 +33,7 @@ The one real, CI-green monorepo inside the Kit that every Project starts from.
 _Avoid_: Template, example app, demo
 
 **Stack Rules**:
-The skill holding the conventions every Project follows (module shape, Contract-first endpoints, migrations, deploy). Projects point at it; they never copy it.
+The document in the Kit (`STACK-RULES.md`) holding the conventions every Project follows (module shape, Contract-first endpoints, migrations, deploy). Projects point at it; they never copy it. Its numbered hard rules are what the Review Loop blocks on.
 _Avoid_: Guidelines, best practices, conventions doc
 
 ## Self-improvement
