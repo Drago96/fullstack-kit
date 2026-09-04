@@ -7,7 +7,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "start": "node --env-file-if-exists=.env dist/main.js",
     "dev": "tsc -p tsconfig.build.json --watch & node --watch --env-file-if-exists=.env dist/main.js",
-    "openapi": "node dist/write-openapi.js ../../packages/api-client/openapi.json",
+    "openapi": "node dist/write-openapi.js openapi.json",
     "api-test": "vitest run --config vitest.api.config.ts"
   },
   "dependencies": {

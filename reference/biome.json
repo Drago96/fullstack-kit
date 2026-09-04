@@ -6,10 +6,12 @@
       "!**/dist",
       "!**/.next",
       "!**/node_modules",
+      "!**/.turbo",
+      "!apps/web/next-env.d.ts",
       "!**/playwright-report",
       "!**/test-results",
       "!packages/api-client/src/schema.ts",
-      "!packages/api-client/openapi.json"
+      "!apps/api/openapi.json"
     ]
   },
   "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },

@@ -7,6 +7,8 @@ import { HelloController } from './hello/hello.controller';
 @Module({
   imports: [
     LoggerModule.forRoot({
+      // Validated by src/env.ts before main.ts boots. Read raw here so write-openapi.ts
+      // can load this module without a PORT.
       pinoHttp: { level: process.env.LOG_LEVEL ?? 'info' },
     }),
   ],

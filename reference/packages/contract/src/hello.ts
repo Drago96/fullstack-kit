@@ -7,6 +7,3 @@ export const helloQuerySchema = z.object({
 export const helloResponseSchema = z.object({
   message: z.string(),
 });
-
-export type HelloQuery = z.infer<typeof helloQuerySchema>;
-export type HelloResponse = z.infer<typeof helloResponseSchema>;

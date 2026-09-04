@@ -1,6 +1,7 @@
 # Build context is the monorepo root: docker build -f apps/api/Dockerfile .
 FROM node:24-alpine AS builder
-RUN npm install -g pnpm@11.16.0
+# pnpm version comes from package.json#packageManager
+RUN corepack enable
 WORKDIR /repo
 COPY . .
 RUN pnpm install --frozen-lockfile

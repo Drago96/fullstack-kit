@@ -9,6 +9,10 @@ defaults:
   run:
     working-directory: reference
 
+env:
+  # next build validates env; the value is never used at build time (the page is dynamic).
+  API_URL: http://localhost:3001
+
 jobs:
   reference:
     name: Reference Project
@@ -31,7 +35,7 @@ jobs:
       - name: Client drift check
         run: |
           pnpm turbo run generate
-          git diff --exit-code -- packages/api-client
+          git diff --exit-code -- apps/api/openapi.json packages/api-client
       - name: Install Playwright
         run: pnpm --filter web exec playwright install --with-deps chromium
       - name: E2E tests

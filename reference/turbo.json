@@ -5,27 +5,21 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
-    "typecheck": {
-      "dependsOn": ["^build"]
+    "web#build": {
+      "dependsOn": ["^build"],
+      "env": ["API_URL"],
+      "outputs": [".next/**", "!.next/cache/**"]
     },
+    "typecheck": { "dependsOn": ["^build"] },
     "test": {},
-    "api-test": {
-      "dependsOn": ["build"]
-    },
-    "e2e": {
-      "dependsOn": ["build", "api#build"]
-    },
-    "openapi": {
-      "dependsOn": ["build"],
-      "outputs": ["../../packages/api-client/openapi.json"]
-    },
+    "api-test": { "dependsOn": ["build"] },
+    "e2e": { "dependsOn": ["build", "api#build"], "passThroughEnv": ["CI"] },
+    "openapi": { "dependsOn": ["build"], "outputs": ["openapi.json"] },
     "generate": {
       "dependsOn": ["api#openapi"],
+      "inputs": ["../../apps/api/openapi.json"],
       "outputs": ["src/schema.ts"]
     },
-    "@reference/api-client#build": {
-      "dependsOn": ["generate", "^build"],
-      "outputs": ["dist/**"]
-    }
+    "@reference/api-client#build": { "dependsOn": ["generate", "^build"], "outputs": ["dist/**"] }
   }
 }
