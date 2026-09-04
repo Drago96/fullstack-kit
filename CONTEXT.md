@@ -36,6 +36,20 @@ _Avoid_: Template, example app, demo
 The skill holding the conventions every Project follows (module shape, Contract-first endpoints, migrations, deploy). Projects point at it; they never copy it.
 _Avoid_: Guidelines, best practices, conventions doc
 
+## Self-improvement
+
+**Lesson**:
+A candidate improvement to the Kit discovered while working on a Project.
+_Avoid_: Feedback, learning, note, TODO
+
+**Harvest**:
+Capturing a Lesson as a GitHub issue on the Kit, from inside a Project session, either on request or when prompted at a phase boundary.
+_Avoid_: Sync back, upstream, report
+
+**Kit Loop**:
+The Loop on the Kit repo that turns `ready-for-agent` Lessons into pull requests. Triage stays human.
+_Avoid_: Self-learning loop, auto-improve
+
 ## Testing
 
 **E2E Test**:
