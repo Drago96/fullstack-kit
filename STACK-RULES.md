@@ -11,9 +11,6 @@ The conventions every Project follows. The Review Loop's Standards axis enforces
 5. **Files stay under 1000 lines.** A diff must not push a file past 1000 lines. Split first.
 6. **No ad-hoc conditionals in unrelated flows.** A change that adds a special case to code paths it does not own is a design problem, not a nit. Put the logic where its data lives.
 7. **Tests at the seams only.** Behaviour is tested as API Tests (`*.api-spec.ts` against a running Nest) and E2E Tests (Playwright against the whole stack). Pure Contract schemas may have unit tests. No unit tests of controllers, services or components through mocks.
-8. **Generated files are never edited.** The OpenAPI document and the generated client are regenerated and committed; CI fails on drift.
-9. **Every change lands via a PR** on an `<issue>-<slug>` branch whose body says `Closes #<issue>`. No direct pushes to `master`. Loops and humans alike (ADR 0008).
-10. **No new dependency for what a few lines do.** New runtime dependencies need a one-line justification in the PR body naming what already-installed option was considered.
 
 ## Deliberately absent (suggest, do not improvise)
 
