@@ -1,0 +1,8 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignore": ["packages/api-client/src/schema.ts"],
+  "includeEntryExports": true,
+  "workspaces": {
+    "apps/api": { "entry": ["src/main.ts", "src/write-openapi.ts"] }
+  }
+}
