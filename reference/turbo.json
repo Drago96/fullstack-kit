@@ -12,8 +12,11 @@
     },
     "typecheck": { "dependsOn": ["^build"] },
     "test": {},
-    "api-test": { "dependsOn": ["build"] },
-    "e2e": { "dependsOn": ["build", "api#build"], "passThroughEnv": ["CI"] },
+    "api-test": { "dependsOn": ["build"], "passThroughEnv": ["DATABASE_URL"] },
+    "e2e": {
+      "dependsOn": ["build", "api#build"],
+      "passThroughEnv": ["CI", "DATABASE_URL"]
+    },
     "openapi": { "dependsOn": ["build"], "outputs": ["openapi.json"] },
     "generate": {
       "dependsOn": ["api#openapi"],

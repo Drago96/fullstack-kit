@@ -3,6 +3,7 @@ import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import { HelloController } from './hello/hello.controller';
+import { NotesController } from './notes/notes.controller';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { HelloController } from './hello/hello.controller';
       pinoHttp: { level: process.env.LOG_LEVEL ?? 'info' },
     }),
   ],
-  controllers: [HelloController],
+  controllers: [HelloController, NotesController],
   providers: [
     { provide: APP_PIPE, useClass: ZodValidationPipe },
     { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },

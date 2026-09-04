@@ -10,10 +10,15 @@
     "e2e": "playwright test"
   },
   "dependencies": {
+    "@hookform/resolvers": "5.9.1",
     "@reference/api-client": "workspace:*",
+    "@reference/contract": "workspace:*",
+    "@tanstack/react-query": "5.102.8",
     "next": "16.3.4",
+    "openapi-react-query": "0.5.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "react-hook-form": "7.87.0",
     "zod": "4.5.4"
   },
   "devDependencies": {
