@@ -1,0 +1,83 @@
+name: Kit Loop
+
+# Turns one triaged `ready-for-agent` issue into a pull request (ADR 0005). It never merges and never labels:
+# the Review Loop reviews every PR and merges it once CI and the review are green (ADR 0008).
+on:
+  schedule:
+    - cron: "20 */2 * * *"
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: "Issue to implement (default: the lowest eligible one)"
+        required: false
+        type: string
+
+concurrency:
+  group: kit-loop
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  implement:
+    name: Kit Loop
+    runs-on: ubuntu-latest
+    env:
+      # The Loop's branch and PR must trigger Kit CI and the Review Loop; those made with github.token do not.
+      # Without REVIEW_LOOP_GH_TOKEN the PR opens with no checks running until someone pushes to it.
+      GH_TOKEN: ${{ secrets.REVIEW_LOOP_GH_TOKEN || github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.REVIEW_LOOP_GH_TOKEN || github.token }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Pick issue
+        id: pick
+        env:
+          FORCED_ISSUE: ${{ inputs.issue }}
+        run: |
+          issue=$(bash scripts/kit-loop/pick.sh "$FORCED_ISSUE")
+          if [ -z "$issue" ]; then
+            echo "::notice::no eligible ready-for-agent issue without an open PR; nothing to do"
+            exit 0
+          fi
+          slug=$(gh issue view "$issue" --json title --jq .title \
+            | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//' \
+            | cut -c1-40 | sed -E 's/-+$//')
+          printf 'issue=%s\nbranch=%s\n' "$issue" "$issue-$slug" >> "$GITHUB_OUTPUT"
+
+      # The skill runs the Reference Project's typecheck and tests, which need pnpm and Node.
+      - uses: pnpm/action-setup@v4
+        if: steps.pick.outputs.issue != ''
+        with:
+          package_json_file: reference/package.json
+      - uses: actions/setup-node@v4
+        if: steps.pick.outputs.issue != ''
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: reference/pnpm-lock.yaml
+
+      - uses: anthropics/claude-code-action@v1
+        if: steps.pick.outputs.issue != ''
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Use the Skill tool to load `kit-loop` and follow it exactly. Its variables:
+            ISSUE_NUMBER=${{ steps.pick.outputs.issue }} BRANCH=${{ steps.pick.outputs.branch }}
+            GITHUB_REPOSITORY=${{ github.repository }}
+          claude_args: |
+            --model claude-opus-5
+            --max-turns 200
+            --plugin-dir ${{ github.workspace }}
+            --allowedTools "Skill,Read,Write,Edit,Glob,Grep,Bash(git *),Bash(gh issue view *),Bash(gh pr create *),Bash(gh pr list *),Bash(gh api *),Bash(pnpm *),Bash(node *),Bash(npx *),Bash(bash *)"

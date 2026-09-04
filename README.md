@@ -11,6 +11,7 @@ A Claude Code plugin holding the Skills, Workflows and Loops for building and ru
 
 ## Skills
 
+- `kit-loop` — the headless implement procedure the Kit Loop runs: read a triaged issue's brief, implement it test-first on its own branch, open a PR. Not for interactive use.
 - `harvest` — from any Project session, "harvest this" files a Lesson as a `needs-triage` issue on this repo (What happened / Kit part / Proposed change / Source). The Kit's implement, review and debugging skills, once they exist, will fire its phase-boundary prompt ("anything here belongs in the Kit?").
 
 ## Composed plugins
@@ -37,6 +38,10 @@ pnpm --filter web start      # http://localhost:3000
 Workspaces: `apps/api` (NestJS), `apps/web` (Next.js App Router), `packages/contract` (Zod schemas, the source of truth), `packages/api-client` (typed client generated from the OpenAPI spec Nest derives from the Contract).
 
 Adding an endpoint: schema in `packages/contract` → controller in `apps/api` → `pnpm turbo run generate` → commit the regenerated `packages/api-client`. CI fails on drift.
+
+## Kit Loop
+
+Every two hours `.github/workflows/kit-loop.yml` picks the lowest-numbered open `ready-for-agent` issue that has no open blocker and no open PR, and runs the `kit-loop` skill on it: implement on an `<issue>-<slug>` branch, open one PR whose body closes the issue. It never merges and never labels — the Review Loop takes it from there (ADR 0008); triage stays human (ADR 0005). `workflow_dispatch` accepts an optional `issue` number to force one issue (its label and blockers are ignored, an open PR still skips it). Run `bash scripts/kit-loop/pick.sh` to see what the next run would pick. Secrets: the same `CLAUDE_CODE_OAUTH_TOKEN` as the Review Loop, plus `REVIEW_LOOP_GH_TOKEN` — without that PAT the Loop's push and PR do not trigger Kit CI or the Review Loop, and the PR sits untouched.
 
 ## Review Loop
 
