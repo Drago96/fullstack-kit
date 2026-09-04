@@ -30,6 +30,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Lint and format
         run: pnpm biome ci .
+      - name: Unused files, exports and dependencies
+        run: pnpm knip
       - name: Typecheck, build, unit tests, API tests
         run: pnpm turbo run typecheck build test api-test
       - name: Client drift check

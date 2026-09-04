@@ -4,6 +4,8 @@
     "module": "commonjs",
     "moduleResolution": "node10",
     "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "declaration": true,
