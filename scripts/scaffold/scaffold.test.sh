@@ -82,6 +82,16 @@ present "docs/agents/triage-labels.md" "$acme/docs/agents/triage-labels.md"
 holds "CLAUDE.md points at Stack Rules" "$acme/CLAUDE.md" "stack-rules"
 holds "CLAUDE.md points at the tracker" "$acme/CLAUDE.md" "docs/agents/issue-tracker.md"
 present "the deploy workflows come along" "$acme/.github/workflows/deploy-api.yml"
+present "the Project gates its own PRs" "$acme/.github/workflows/ci.yml"
+if command -v actionlint > /dev/null; then
+  if out=$(cd "$acme" && actionlint -no-color 2>&1); then
+    ok "actionlint is green on the Project's workflows"
+  else
+    no "actionlint is green on the Project's workflows" "$out"
+  fi
+else
+  echo "note actionlint is not installed; skipping the Project's workflow lint"
+fi
 
 # ── The hand-off ──────────────────────────────────────────────────────────────
 holds "the hand-off names the wizard" "$tmp/handoff.txt" "bash scripts/provision.sh"

@@ -115,3 +115,6 @@ jobs:
           curl -sSfL https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz \
             | tar -xz actionlint
           ./actionlint -color
+          # A bare run only sees this repo's own .github/workflows; the Reference
+          # Project's are workflows for the Projects, and GitHub never reads them here.
+          ./actionlint -color reference/.github/workflows/*.yml
