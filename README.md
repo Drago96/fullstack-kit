@@ -54,7 +54,25 @@ Run `bash scripts/provision.sh` once from a Project's root. It is a `/wizard`: t
 
 Pushing to `main` then deploys: `deploy-api.yml` builds `apps/api/Dockerfile`, pushes to Artifact Registry and rolls a Cloud Run revision, authenticated by exchanging GitHub's OIDC token through Workload Identity Federation — no service-account key exists. The API applies pending Drizzle migrations on boot, so there is no migrate step. `deploy-web.yml` runs the Vercel CLI (`pull`, `build --prod`, `deploy --prebuilt --prod`) against the project whose Root Directory is `apps/web`.
 
-Where each variable comes from: GitHub **variables** hold the non-secret config the Cloud Run revision needs (`GCP_PROJECT_ID`, `GCP_REGION`, `GCP_ARTIFACT_REPOSITORY`, `GCP_WORKLOAD_IDENTITY_PROVIDER`, `GCP_DEPLOY_SERVICE_ACCOUNT`, `CLOUD_RUN_SERVICE`, `API_URL`, `WEB_URL`, `EMAIL_TRANSPORT`, `LLM_PROVIDER`). The API's five secrets — `DATABASE_URL`, `AUTH_SECRET`, `SENTRY_DSN`, `RESEND_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY` — are **Secret Manager** secrets, not GitHub ones. GitHub **secrets** hold what the workflows themselves read: `VERCEL_TOKEN`, `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` for the web deploy, and, in the Kit only, `REVIEW_LOOP_GH_TOKEN`, which `publish-reference.yml` pushes the `reference` branch with. The Loops read nothing from GitHub — they run from your terminal on your Claude subscription, and the Error Loop's Sentry credentials live in that shell (ADR 0009). Web's own two variables, `API_URL` and `NEXT_PUBLIC_SENTRY_DSN`, live in Vercel's production environment, not in GitHub, because `vercel build` reads them from there. `apps/api/.env.example` and `apps/web/.env.example` list every variable each app validates, one line of purpose each.
+Where each variable comes from — every name the deploy reads, and who holds it. The API's own configuration is `apps/api/src/env.ts`: each key below either reaches the Cloud Run revision or keeps the default that file gives it (`PORT`, which Cloud Run sets itself, and `LOG_LEVEL`, which stays `info`). `scripts/deploy-env.test.sh` fails CI when a key in `env.ts` reaches neither this table nor `deploy-api.yml`.
+
+| Name | Held in | Read by |
+| --- | --- | --- |
+| `GCP_PROJECT_ID`, `GCP_REGION`, `GCP_ARTIFACT_REPOSITORY` | GitHub variable | `deploy-api.yml`: the image name and where it is pushed |
+| `GCP_WORKLOAD_IDENTITY_PROVIDER`, `GCP_DEPLOY_SERVICE_ACCOUNT` | GitHub variable | `deploy-api.yml`: the OIDC exchange that authenticates the deploy |
+| `CLOUD_RUN_SERVICE` | GitHub variable | `deploy-api.yml`: the service the revision rolls onto |
+| `API_URL` | GitHub variable | the revision: public base URL of the API, which Better Auth builds email links with |
+| `WEB_URL` | GitHub variable | the revision: trusted origin for auth requests, and where email links land |
+| `MOBILE_URL` | GitHub variable | the revision: the mobile app's deep-link scheme, another trusted origin. Unset in a Project without the mobile app, and the deploy then omits it |
+| `EMAIL_TRANSPORT` | GitHub variable | the revision: `resend` in production, `capture` in tests |
+| `EMAIL_FROM` | GitHub variable | the revision: sender of every message it sends |
+| `LLM_PROVIDER` | GitHub variable | the revision: `google` in production, `mock` in tests |
+| `DATABASE_URL`, `AUTH_SECRET`, `SENTRY_DSN`, `RESEND_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY` | Secret Manager | the revision, at boot, as `NAME:latest` references — never GitHub secrets |
+| `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` | GitHub secret | `deploy-web.yml`: the Vercel CLI |
+| `REVIEW_LOOP_GH_TOKEN` | GitHub secret, in the Kit only | `publish-reference.yml`, which pushes the `reference` branch |
+| `API_URL`, `NEXT_PUBLIC_SENTRY_DSN` | Vercel production environment | `vercel build`, which reads web's variables from there rather than from GitHub |
+
+The Loops read nothing from GitHub — they run from your terminal on your Claude subscription, and the Error Loop's Sentry credentials (`SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`) live in that shell (ADR 0009). `apps/api/.env.example` and `apps/web/.env.example` list every variable each app validates, one line of purpose each.
 
 The API's secrets never reach GitHub. The wizard writes each one straight into Google Secret Manager (`gcloud secrets versions add --data-file=-`, so no value touches disk or the terminal) and grants `roles/secretmanager.secretAccessor` on it to `api-runtime@<project>.iam.gserviceaccount.com`, the dedicated service account the Cloud Run service runs as — the default compute account carries Editor and would read every secret in the project. `deploy-api.yml` passes them through `deploy-cloudrun`'s `secrets:` input as `NAME=NAME:latest`, so the revision stores only the references and `run.services.get` shows no values; the deploy account attaches them but cannot read them. Re-running the wizard adds a new version, which is how these secrets rotate: the next deploy picks it up.
 
