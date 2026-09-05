@@ -2,7 +2,11 @@ packages:
   - apps/*
   - packages/*
 allowBuilds:
+  # next-intl's message extractor pulls these in; both ship their native binary as a
+  # platform-specific optional dependency, so no postinstall build is needed.
+  "@parcel/watcher": false
   "@scarf/scarf": false
+  "@swc/core": false
   # drizzle-kit pulls esbuild in; pnpm installs its platform binary as an optional
   # dependency, so the postinstall that would fetch one is not needed.
   esbuild: false

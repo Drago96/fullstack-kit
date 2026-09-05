@@ -55,6 +55,14 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        ValidationFailureDto: {
+            /** @enum {number} */
+            statusCode: 400;
+            message: string;
+            errors: {
+                message: string;
+            }[];
+        };
         NoteListDto_Output: {
             /** Format: uuid */
             id: string;
@@ -131,6 +139,14 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NoteDto_Output"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationFailureDto"];
                 };
             };
         };
