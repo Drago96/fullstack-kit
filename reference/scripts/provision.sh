@@ -105,33 +105,41 @@ _existing() {
   printf '%s' "${line#*=}"
 }
 
-# ask KEY "Prompt" reads a value into $KEY. Offers the existing .env value as
-# a default on re-runs (Enter keeps it). Visible input (non-secret).
+# ask KEY "Prompt" [default] reads a value into $KEY. Enter takes the existing .env
+# value on re-runs, else the default. Without a default the question repeats until
+# answered; an explicit empty default ("") means an empty answer is allowed.
+_prompt() { # _prompt "Prompt" current default
+  local hint=""
+  if [[ -n "$2" ]]; then hint="[Enter keeps current]"; elif [[ -n "$3" ]]; then hint="[Enter for $3]"; fi
+  printf '  %s%s%s %s%s%s ' "$BOLD" "$1" "$RESET" "$DIM" "$hint" "$RESET"
+}
 ask() {
-  local key="$1" prompt="$2" current input
+  local key="$1" prompt="$2" current input default="${3-}" optional=$(( $# >= 3 ))
   current=$(_existing "$key" || true)
-  if [[ -n "$current" ]]; then
-    printf '  %s%s%s %s[Enter keeps current]%s ' "$BOLD" "$prompt" "$RESET" "$DIM" "$RESET"
-  else
-    printf '  %s%s%s ' "$BOLD" "$prompt" "$RESET"
-  fi
-  read -r input || true
-  [[ -z "$input" && -n "$current" ]] && input="$current"
+  while :; do
+    _prompt "$prompt" "$current" "$default"
+    # -e: readline handles the line, so backspacing over a non-ASCII character removes the
+    # whole character; the terminal's own editing may remove one byte and keep the rest.
+    read -re input || true
+    [[ -z "$input" ]] && input="${current:-$default}"
+    [[ -n "$input" || "$optional" -eq 1 ]] && break
+    warn "a value is required"
+  done
   printf -v "$key" '%s' "$input"
 }
 
-# ask_secret KEY "Prompt" is like ask, but input is hidden.
+# ask_secret KEY "Prompt" is like ask, but input is hidden and always required.
 ask_secret() {
   local key="$1" prompt="$2" current input
   current=$(_existing "$key" || true)
-  if [[ -n "$current" ]]; then
-    printf '  %s%s%s %s[Enter keeps current]%s ' "$BOLD" "$prompt" "$RESET" "$DIM" "$RESET"
-  else
-    printf '  %s%s%s ' "$BOLD" "$prompt" "$RESET"
-  fi
-  read -rs input || true
-  printf '\n'
-  [[ -z "$input" && -n "$current" ]] && input="$current"
+  while :; do
+    _prompt "$prompt" "$current" ""
+    read -rs input || true
+    printf '\n'
+    [[ -z "$input" ]] && input="$current"
+    [[ -n "$input" ]] && break
+    warn "a value is required"
+  done
   printf -v "$key" '%s' "$input"
 }
 
@@ -257,16 +265,32 @@ REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
 SLUG=${REPO##*/}
 say "GitHub repository: $REPO"
 record repository "$REPO"
+# One personal account owns every vendor below; a work account must never slip in. gcloud is
+# the one CLI that silently uses whatever account is active, so it is pinned for the rest
+# of this run through CLOUDSDK_CORE_ACCOUNT, which leaves your global gcloud config alone.
+ask ACCOUNT_EMAIL "Personal account email for every vendor (Google, Neon, Vercel, Sentry, Resend):"
+write_env ACCOUNT_EMAIL "$ACCOUNT_EMAIL"
+export CLOUDSDK_CORE_ACCOUNT="$ACCOUNT_EMAIL"
+gcloud auth list --filter="account:$ACCOUNT_EMAIL" --format='value(account)' 2>/dev/null | grep -qx "$ACCOUNT_EMAIL" ||
+  gcloud auth login "$ACCOUNT_EMAIL" --no-activate
+say "gcloud runs as $ACCOUNT_EMAIL for this run only; your active gcloud account is untouched."
 pause "Provisioning $SLUG. Enter to continue."
 
 # ── 2 ─────────────────────────────────────────────────────────────────────
 stage "Neon: Postgres"
 say "Creating the Project's database. A project of this name is reused, not replaced."
-neonctl auth >/dev/null 2>&1 || pause "A browser opened for Neon login. Enter when done."
-neon_id=$(neonctl projects list --output json | jq -r --arg n "$SLUG" \
-  'first((.projects // [])[] | select(.name == $n) | .id) // empty')
+neonctl auth >/dev/null 2>&1 || pause "A browser opened for Neon login as $ACCOUNT_EMAIL. Enter when done."
+neon_me=$(neonctl me --output json 2>/dev/null | jq -r '.email // empty')
+[[ "$neon_me" == "$ACCOUNT_EMAIL" ]] ||
+  fail "neonctl is logged in as '${neon_me:-nobody}', not $ACCOUNT_EMAIL — run 'neonctl auth' with the personal account"
+# An account in an organization gets an interactive "which organization?" menu from every
+# neonctl command that lacks --org-id, and the menu text is not JSON. Pick the first org
+# once; a personal account has none and the flag stays empty.
+neon_org=$(neonctl orgs list --output json 2>/dev/null | jq -r 'if type == "array" then .[0].id // empty else empty end')
+neon_id=$(neonctl projects list ${neon_org:+--org-id=$neon_org} --output json | jq -r --arg n "$SLUG" \
+  'first((if type == "array" then . else .projects // [] end)[] | select(.name == $n) | .id) // empty')
 if [[ -z "$neon_id" ]]; then
-  neon_id=$(neonctl projects create --name "$SLUG" --output json | jq -r '.project.id')
+  neon_id=$(neonctl projects create --name "$SLUG" ${neon_org:+--org-id=$neon_org} --output json | jq -r '.project.id // .id')
   say "created Neon project $neon_id"
 else
   say "reusing Neon project $neon_id"
@@ -278,15 +302,36 @@ pause
 
 # ── 3 ─────────────────────────────────────────────────────────────────────
 stage "Google Cloud: project, APIs, Artifact Registry"
-ask GCP_PROJECT_ID "Google Cloud project id (e.g. $SLUG-prod):"
-[[ -n "$GCP_PROJECT_ID" ]] || fail "a Google Cloud project id is required"
-ask GCP_REGION "Cloud Run region [europe-west1]:"
-GCP_REGION=${GCP_REGION:-europe-west1}
-gcloud projects describe "$GCP_PROJECT_ID" >/dev/null 2>&1 ||
-  gcloud projects create "$GCP_PROJECT_ID"
-open_url "https://console.cloud.google.com/billing/linkedaccount?project=$GCP_PROJECT_ID"
-step "Link a billing account — Cloud Run's free tier still requires one."
-pause "Enter once billing is linked."
+# Project ids are unique across all of Google Cloud, and a deleted project keeps its id for
+# 30 days, so the suggested id can be taken. Ask until one is ours or newly created.
+while :; do
+  ask GCP_PROJECT_ID "Google Cloud project id:" "$SLUG-prod"
+  if gcloud projects describe "$GCP_PROJECT_ID" >/dev/null 2>&1; then say "reusing project $GCP_PROJECT_ID"; break; fi
+  if gcloud projects create "$GCP_PROJECT_ID"; then break; fi
+  warn "'$GCP_PROJECT_ID' is taken (or belongs to another account); pick another id"
+done
+write_env GCP_PROJECT_ID "$GCP_PROJECT_ID"
+ask GCP_REGION "Cloud Run region:" europe-west1
+# Enabling the APIs below fails until a billing account is linked, so the wizard waits here
+# instead of failing on the first attempt. Only an open billing account can be linked; closed
+# ones (expired trials) show up on the link page but cannot be selected.
+billing_enabled() {
+  [[ "$(gcloud billing projects describe "$GCP_PROJECT_ID" --format='value(billingEnabled)' 2>/dev/null)" == "True" ]]
+}
+if ! billing_enabled; then
+  if [[ -z "$(gcloud billing accounts list --filter='open=true' --format='value(name)' 2>/dev/null)" ]]; then
+    open_url "https://console.cloud.google.com/billing/create"
+    step "Signed in as $ACCOUNT_EMAIL, you have no open billing account — create one first (Cloud Run's free tier still needs one)."
+    pause "Enter once the billing account exists."
+  fi
+  open_url "https://console.cloud.google.com/billing/linkedaccount?project=$GCP_PROJECT_ID"
+  step "Signed in as $ACCOUNT_EMAIL, link the billing account to $GCP_PROJECT_ID."
+  until billing_enabled; do
+    pause "Enter once billing is linked."
+    billing_enabled || warn "$GCP_PROJECT_ID still has no billing account linked"
+  done
+fi
+say "billing is linked to $GCP_PROJECT_ID"
 gcloud services enable run.googleapis.com artifactregistry.googleapis.com \
   iamcredentials.googleapis.com sts.googleapis.com secretmanager.googleapis.com \
   --project "$GCP_PROJECT_ID"
@@ -376,6 +421,7 @@ pause
 # ── 6 ─────────────────────────────────────────────────────────────────────
 stage "Vercel: web project"
 say "Linking the repo to a Vercel project. Hobby forbids commercial use (ADR 0002)."
+vercel whoami >/dev/null 2>&1 || { say "Log in to Vercel as $ACCOUNT_EMAIL."; vercel login "$ACCOUNT_EMAIL"; }
 vercel link --yes --project "$SLUG"
 VERCEL_ORG_ID=$(jq -r .orgId .vercel/project.json)
 VERCEL_PROJECT_ID=$(jq -r .projectId .vercel/project.json)
@@ -386,8 +432,7 @@ pause "Enter once Root Directory is apps/web."
 open_url "https://vercel.com/account/settings/tokens"
 step "Create a token scoped to this project's team, then copy it."
 ask_secret VERCEL_TOKEN "Paste the Vercel token:"
-ask WEB_URL "Production URL of the web app [https://$SLUG.vercel.app]:"
-WEB_URL=${WEB_URL:-https://$SLUG.vercel.app}
+ask WEB_URL "Production URL of the web app:" "https://$SLUG.vercel.app"
 printf '%s' "$API_URL" | vercel env add API_URL production --force >/dev/null
 say "API_URL stored as a Vercel production environment variable"
 set_secret VERCEL_TOKEN "$VERCEL_TOKEN"
@@ -407,7 +452,7 @@ say "AUTH_SECRET generated and stored. Rotating it logs everyone out."
 set_var EMAIL_TRANSPORT resend
 set_var LLM_PROVIDER google
 say "The mobile app's deep-link scheme is a trusted origin for its auth requests."
-ask MOBILE_URL "Mobile deep-link scheme, e.g. $SLUG:// (Enter for none):"
+ask MOBILE_URL "Mobile deep-link scheme, e.g. $SLUG:// (Enter for none):" ""
 # Empty is the Project generated without mobile: deploy-api.yml then omits the row.
 set_var MOBILE_URL "$MOBILE_URL"
 pause
@@ -416,7 +461,7 @@ pause
 stage "Sentry: error tracking"
 say "Sentry has no CLI for creating a project or reading its DSN, so this one is manual."
 open_url "https://sentry.io/organizations/new/"
-step "Create or open an organization, then two projects: '$SLUG-api' (Node) and"
+step "Signed in as $ACCOUNT_EMAIL, create or open an organization, then two projects: '$SLUG-api' (Node) and"
 step "'$SLUG-web' (Next.js). Each shows its DSN on the setup page."
 ask_secret SENTRY_DSN "Paste the API project DSN:"
 ask_secret NEXT_PUBLIC_SENTRY_DSN "Paste the web project DSN:"
@@ -438,7 +483,7 @@ pause
 stage "Google AI Studio: Gemini key"
 say "POST /ask runs on Gemini Flash, whose free tier costs nothing (ADR 0002)."
 open_url "https://aistudio.google.com/apikey"
-step "Create an API key, then copy it."
+step "Signed in as $ACCOUNT_EMAIL, create an API key, then copy it."
 ask_secret GOOGLE_GENERATIVE_AI_API_KEY "Paste the Gemini API key:"
 set_gcp_secret GOOGLE_GENERATIVE_AI_API_KEY "$GOOGLE_GENERATIVE_AI_API_KEY"
 pause
@@ -447,11 +492,10 @@ pause
 stage "Resend: auth email"
 say "Verification and password-reset messages go out through Resend."
 open_url "https://resend.com/api-keys"
-step "Create an API key with send access, then copy it."
+step "Signed in as $ACCOUNT_EMAIL, create an API key with send access, then copy it."
 ask_secret RESEND_API_KEY "Paste the Resend API key:"
 set_gcp_secret RESEND_API_KEY "$RESEND_API_KEY"
-ask EMAIL_FROM "Sender of every message [$SLUG <onboarding@resend.dev>]:"
-EMAIL_FROM=${EMAIL_FROM:-"$SLUG <onboarding@resend.dev>"}
+ask EMAIL_FROM "Sender of every message:" "$SLUG <onboarding@resend.dev>"
 set_var EMAIL_FROM "$EMAIL_FROM"
 pause
 
