@@ -32,6 +32,15 @@ A client component under `apps/web/src/app/[locale]/<route>/page.tsx`, as in `no
 
 Mobile forms are the same react-hook-form and the same Contract schema through `zodResolver`; only the field binding differs, since `TextInput` is uncontrolled-unfriendly: wrap each one in react-hook-form's `Controller` (`apps/mobile/src/app/index.tsx`) instead of `register`.
 
+## Add a page or component
+
+Tailwind v4 and shadcn/ui, per ADR 0007. There is no `tailwind.config.js`: `apps/web/src/app/globals.css` **is** the config — `@import "tailwindcss"`, the neutral shadcn colour tokens, and the `@theme inline` block that turns each into a utility (`bg-background`, `text-muted-foreground`, `border-input`). `apps/web/postcss.config.mjs` runs `@tailwindcss/postcss`; `apps/web/src/app/[locale]/layout.tsx` imports the stylesheet once and wraps every page in the header and the centred column, so a page only writes its own `<main>`.
+
+- **The primitives live in `apps/web/src/components/ui/`**: `button.tsx`, `input.tsx`, `label.tsx`, `card.tsx`, `alert.tsx`. They are copied source, not a package — edit them in place. `cn` (clsx + tailwind-merge) is `apps/web/src/lib/utils.ts`; `apps/web/components.json` is what `pnpm dlx shadcn add <name>` reads.
+- **Need a primitive that is not there** (textarea, select, dialog, table)? `pnpm dlx shadcn add <name>` from `apps/web/`, and add nothing the page does not use — an unused export fails `pnpm knip`. Only reach for an icon set (`lucide-react`) when a component you added actually imports one.
+- **Compose, do not restyle**: `<Button asChild><Link …></Button>` keeps the anchor a link, which is how the E2E Tests find it. A form field is `<Label htmlFor>` + `<Input id>` + a `<span role="alert">` for the error; a failure the whole form reports is `<Alert variant="destructive"><AlertDescription>`. `apps/web/src/app/[locale]/login/page.tsx` is the shape end to end.
+- E2E Tests locate by role and label, so the class list is free to change but the roles, labels and headings are not.
+
 ## Add a translated string
 
 Add the key to `packages/messages/src/en.json` **and** every other locale file (`bg.json`). `packages/messages/src/index.ts` types the map against `en`, so a missing translation fails typecheck rather than shipping a blank. Contract error codes live under `errors.<code>`. `apps/web/e2e/i18n.spec.ts` is the test that a page really translates.

@@ -11,6 +11,11 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { authClient } from '@/auth-client';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useErrorCodes } from '@/i18n/error-codes';
 import { useRouter } from '@/i18n/navigation';
 
@@ -40,29 +45,39 @@ function RequestLink() {
 
   if (sent) {
     return (
-      <main>
-        <h1>{t('checkEmail')}</h1>
-        <p>{t('resetLinkSent')}</p>
+      <main className="space-y-4">
+        <h1 className="text-2xl font-semibold tracking-tight">{t('checkEmail')}</h1>
+        <p className="text-muted-foreground">{t('resetLinkSent')}</p>
       </main>
     );
   }
 
   return (
-    <main>
-      <h1>{t('forgotPassword')}</h1>
-      <form onSubmit={submit}>
-        <p>
-          <label htmlFor="email">{t('email')}</label>
-          <input id="email" type="email" {...register('email')} />
-          {formState.errors.email ? (
-            <span role="alert">{translate(formState.errors.email.message)}</span>
-          ) : null}
-        </p>
-        <button type="submit" disabled={formState.isSubmitting}>
-          {t('sendResetLink')}
-        </button>
-      </form>
-      {failure ? <p role="alert">{translate(failure)}</p> : null}
+    <main className="space-y-6">
+      <h1 className="text-2xl font-semibold tracking-tight">{t('forgotPassword')}</h1>
+      <Card>
+        <CardContent>
+          <form onSubmit={submit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">{t('email')}</Label>
+              <Input id="email" type="email" {...register('email')} />
+              {formState.errors.email ? (
+                <span role="alert" className="block text-sm text-destructive">
+                  {translate(formState.errors.email.message)}
+                </span>
+              ) : null}
+            </div>
+            <Button type="submit" disabled={formState.isSubmitting}>
+              {t('sendResetLink')}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+      {failure ? (
+        <Alert variant="destructive">
+          <AlertDescription>{translate(failure)}</AlertDescription>
+        </Alert>
+      ) : null}
     </main>
   );
 }
@@ -87,21 +102,31 @@ function SetPassword({ token }: { token: string }) {
   });
 
   return (
-    <main>
-      <h1>{t('setNewPassword')}</h1>
-      <form onSubmit={submit}>
-        <p>
-          <label htmlFor="password">{t('newPassword')}</label>
-          <input id="password" type="password" {...register('password')} />
-          {formState.errors.password ? (
-            <span role="alert">{translate(formState.errors.password.message)}</span>
-          ) : null}
-        </p>
-        <button type="submit" disabled={formState.isSubmitting}>
-          {t('setNewPassword')}
-        </button>
-      </form>
-      {failure ? <p role="alert">{translate(failure)}</p> : null}
+    <main className="space-y-6">
+      <h1 className="text-2xl font-semibold tracking-tight">{t('setNewPassword')}</h1>
+      <Card>
+        <CardContent>
+          <form onSubmit={submit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="password">{t('newPassword')}</Label>
+              <Input id="password" type="password" {...register('password')} />
+              {formState.errors.password ? (
+                <span role="alert" className="block text-sm text-destructive">
+                  {translate(formState.errors.password.message)}
+                </span>
+              ) : null}
+            </div>
+            <Button type="submit" disabled={formState.isSubmitting}>
+              {t('setNewPassword')}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+      {failure ? (
+        <Alert variant="destructive">
+          <AlertDescription>{translate(failure)}</AlertDescription>
+        </Alert>
+      ) : null}
     </main>
   );
 }
