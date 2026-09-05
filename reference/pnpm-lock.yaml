@@ -102,9 +102,18 @@ importers:
       '@better-auth/expo':
         specifier: 1.7.2
         version: 1.7.2(dbc8f38210a7839adaf3b40e70c68b55)
+      '@hookform/resolvers':
+        specifier: 5.9.1
+        version: 5.9.1(@sinclair/typebox@0.27.12)(@standard-schema/spec@1.1.0)(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(react-hook-form@7.87.0(react@19.2.3))(zod@4.5.4)
       '@reference/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@reference/contract':
+        specifier: workspace:*
+        version: link:../../packages/contract
+      '@reference/messages':
+        specifier: workspace:*
+        version: link:../../packages/messages
       '@tanstack/react-query':
         specifier: 5.102.8
         version: 5.102.8(react@19.2.3)
@@ -120,6 +129,9 @@ importers:
       expo-linking:
         specifier: 57.0.9
         version: 57.0.9(expo@57.0.20)(react-native@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/metro-config@0.87.1(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.18)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3)(supports-color@10.2.2)
+      expo-localization:
+        specifier: 57.0.1
+        version: 57.0.1(expo@57.0.20)(react@19.2.3)
       expo-network:
         specifier: 57.0.1
         version: 57.0.1(expo@57.0.20)(react@19.2.3)
@@ -138,6 +150,9 @@ importers:
       react:
         specifier: 19.2.3
         version: 19.2.3
+      react-hook-form:
+        specifier: 7.87.0
+        version: 7.87.0(react@19.2.3)
       react-native:
         specifier: 0.86.3
         version: 0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/metro-config@0.87.1(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.18)(react@19.2.3)(supports-color@10.2.2)
@@ -147,6 +162,9 @@ importers:
       react-native-screens:
         specifier: 4.26.0
         version: 4.26.0(react-native@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/metro-config@0.87.1(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.18)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3)
+      use-intl:
+        specifier: 4.14.2
+        version: 4.14.2(react@19.2.3)
       zod:
         specifier: 4.5.4
         version: 4.5.4
@@ -4085,6 +4103,12 @@ packages:
       react: '*'
       react-native: '*'
 
+  expo-localization@57.0.1:
+    resolution: {integrity: sha512-8Ffl4UTbOsQeGT0v5fxMbyPHyPMPnhSPDFQJa8p9rjJrthFoAtNi+fL6Ssmrvf1/7dmPq1mVY52MEt0TMEfgjA==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
+
   expo-modules-autolinking@57.0.12:
     resolution: {integrity: sha512-Q8KAlq37nLKsQ+HsS9NpQVpd5jCgqtu694TDUNHBUBpV9ViD82mRBh8Uug/h68RG9xnLS+kuL4nYaCuFRghHjg==}
     hasBin: true
@@ -5556,6 +5580,9 @@ packages:
   router@2.2.0:
     resolution: {integrity: sha512-nLTrUKm2UyiL7rlhapu/Zl45FwNgkZGaCpZbIHajDYgwlJCOzLSk+cIPAnsEqV955GjILJnKbdQC1nVPz+gAYQ==}
     engines: {node: '>= 18'}
+
+  rtl-detect@1.1.2:
+    resolution: {integrity: sha512-PGMBq03+TTG/p/cRB7HCLKJ1MgDIi07+QU1faSjiYRfmY5UsAttV9Hs08jDAHVwcOwmVLcSJkpwyfXszVjWfIQ==}
 
   rxjs@7.8.2:
     resolution: {integrity: sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==}
@@ -7682,6 +7709,17 @@ snapshots:
   '@formatjs/intl-localematcher@0.8.13':
     dependencies:
       '@formatjs/fast-memoize': 3.1.7
+
+  '@hookform/resolvers@5.9.1(@sinclair/typebox@0.27.12)(@standard-schema/spec@1.1.0)(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(react-hook-form@7.87.0(react@19.2.3))(zod@4.5.4)':
+    dependencies:
+      '@standard-schema/utils': 0.3.0
+      react-hook-form: 7.87.0(react@19.2.3)
+    optionalDependencies:
+      '@sinclair/typebox': 0.27.12
+      '@standard-schema/spec': 1.1.0
+      ajv: 8.20.0
+      ajv-formats: 2.1.1(ajv@8.20.0)
+      zod: 4.5.4
 
   '@hookform/resolvers@5.9.1(@sinclair/typebox@0.27.12)(@standard-schema/spec@1.1.0)(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(react-hook-form@7.87.0(react@19.2.8))(zod@4.5.4)':
     dependencies:
@@ -10214,6 +10252,12 @@ snapshots:
       - supports-color
     optional: true
 
+  expo-localization@57.0.1(expo@57.0.20)(react@19.2.3):
+    dependencies:
+      expo: 57.0.20(@babel/core@7.29.7(supports-color@10.2.2))(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.15)(expo-router@57.0.19)(react-dom@19.2.8(react@19.2.3))(react-native-worklets@0.12.1(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/metro-config@0.87.1(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(react-native@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/metro-config@0.87.1(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.18)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3)(supports-color@10.2.2))(react-native@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/metro-config@0.87.1(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.18)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3)(supports-color@10.2.2)(typescript@5.9.3)
+      react: 19.2.3
+      rtl-detect: 1.1.2
+
   expo-modules-autolinking@57.0.12(supports-color@10.2.2)(typescript@5.9.3):
     dependencies:
       '@expo/require-utils': 57.0.5(supports-color@10.2.2)(typescript@5.9.3)
@@ -11984,6 +12028,10 @@ snapshots:
       react: 19.2.8
     optional: true
 
+  react-hook-form@7.87.0(react@19.2.3):
+    dependencies:
+      react: 19.2.3
+
   react-hook-form@7.87.0(react@19.2.8):
     dependencies:
       react: 19.2.8
@@ -12414,6 +12462,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  rtl-detect@1.1.2: {}
+
   rxjs@7.8.2:
     dependencies:
       tslib: 2.8.1
@@ -12841,6 +12891,14 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.18
     optional: true
+
+  use-intl@4.14.2(react@19.2.3):
+    dependencies:
+      '@formatjs/fast-memoize': 3.1.7
+      '@schummar/icu-type-parser': 1.21.5
+      icu-minify: 4.14.2
+      intl-messageformat: 11.2.14
+      react: 19.2.3
 
   use-intl@4.14.2(react@19.2.8):
     dependencies:

@@ -1,14 +1,16 @@
 import { Stack } from 'expo-router';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { useTranslations } from 'use-intl';
 import { api } from '@/api';
 
 export default function NotesScreen() {
+  const t = useTranslations('notes');
   const notes = api.useQuery('get', '/notes');
 
   return (
     <View style={styles.screen}>
-      <Stack.Screen options={{ title: 'Notes' }} />
-      {notes.error ? <Text accessibilityRole="alert">Could not load notes</Text> : null}
+      <Stack.Screen options={{ title: t('heading') }} />
+      {notes.error ? <Text accessibilityRole="alert">{t('loadFailed')}</Text> : null}
       <FlatList
         data={notes.data ?? []}
         keyExtractor={(note) => note.id}
