@@ -75,6 +75,34 @@ jobs:
           pnpm knip
           pnpm turbo run typecheck build test
 
+  scaffold:
+    name: Scaffold
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The test builds the `reference` branch with `git subtree split`, which needs
+          # the history publish-reference.yml splits from.
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: reference/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: reference/pnpm-lock.yaml
+      - name: Scaffold a Project and run its task graph
+        working-directory: .
+        env:
+          # Scaffold commits the tree it generates.
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          SCAFFOLD_TEST_TASK_GRAPH: "1"
+        run: bash scripts/scaffold/scaffold.test.sh
+
   actionlint:
     name: Workflow lint
     runs-on: ubuntu-latest

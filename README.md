@@ -11,6 +11,7 @@ A Claude Code plugin holding the Skills, Workflows and Loops for building and ru
 
 ## Skills
 
+- `scaffold` — generate a new Project. `bash scripts/scaffold/scaffold.sh <name> [--mobile] [--visibility private|public]` clones the Kit's `reference` branch into `./<name>` (so `git merge kit/reference` is a no-op at birth), renames the identifiers, strips the mobile workspace unless asked for it, writes the Project's `CLAUDE.md` and `docs/agents`, creates and pushes `Drago96/<name>` with the five triage labels, and hands off to `bash scripts/provision.sh`. `scripts/scaffold/scaffold.test.sh` runs the whole thing in CI against a locally split `reference` branch.
 - `stack-rules` — how to build anything on this stack (endpoint, migration, form, translated string, LLM call, job, E2E Test), the conventions the Loops depend on, and what to propose when a task needs a capability the stack leaves out. The rules themselves are `STACK-RULES.md`; every Project's `CLAUDE.md` is a one-line pointer at this skill.
 - `workflows` — the ordered paths through the skills: feature, bug, Lesson, new Project.
 - `implement` — the implement procedure both Loops and interactive sessions follow: test-first at pre-agreed seams with `tdd`, typecheck and tests as you go, `code-review` against the base branch, one PR closing the issue. Model-invocable, so subagents can run it too.
