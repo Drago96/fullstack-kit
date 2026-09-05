@@ -87,6 +87,7 @@ present "docs/agents/issue-tracker.md" "$acme/docs/agents/issue-tracker.md"
 present "docs/agents/triage-labels.md" "$acme/docs/agents/triage-labels.md"
 holds "CLAUDE.md points at Stack Rules" "$acme/CLAUDE.md" "stack-rules"
 holds "CLAUDE.md points at the tracker" "$acme/CLAUDE.md" "docs/agents/issue-tracker.md"
+holds "CLAUDE.md prompts /harvest" "$acme/CLAUDE.md" "/harvest"
 present "the deploy workflows come along" "$acme/.github/workflows/deploy-api.yml"
 present "the Project gates its own PRs" "$acme/.github/workflows/ci.yml"
 if command -v actionlint > /dev/null; then
