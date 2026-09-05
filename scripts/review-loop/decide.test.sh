@@ -7,7 +7,7 @@ check() { # blocking fix_rounds changes_requested expected
   got=$(bash decide.sh "$1" "$2" "$3")
   if [ "$got" != "$4" ]; then echo "FAIL decide $1 $2 $3: expected $4, got $got"; fail=1; else echo "ok   decide $1 $2 $3 -> $4"; fi
 }
-check 0 0 false pass      # clean review, no human veto: check passes, auto-merge proceeds
+check 0 0 false pass      # clean review, no human veto: the Loop merges the PR
 check 0 2 false pass      # clean after two fix rounds: still passes
 check 3 0 false fix       # blocking findings, rounds left: fix round
 check 1 1 false fix       # second and last fix round

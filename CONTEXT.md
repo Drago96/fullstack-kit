@@ -13,7 +13,7 @@ A named, ordered path through skills, written as prose (e.g. idea → spec → t
 _Avoid_: Pipeline, flow, process, orchestration script
 
 **Loop**:
-A fully automated, unattended run of a skill that watches a signal and acts on it repeatedly (e.g. watch production errors, fix them).
+A skill the owner runs on demand — in a separate terminal or as a subagent — that reads a signal and acts on every item it finds (e.g. read the unresolved Sentry issues, fix them). It repeats within a run, not on a schedule; nothing runs unattended (ADR 0009).
 _Avoid_: Ralph loop, agent, bot, cron job
 
 **Project**:
@@ -59,7 +59,7 @@ The Loop in every Project that turns an unresolved Sentry issue into a pull requ
 _Avoid_: Error bot, Sentry loop, auto-fix, self-healing
 
 **Review Loop**:
-The Loop that reviews every pull request against Stack Rules and its linked issue, fixes what it can, and merges when CI and the review are green. Hands a PR to a human only when it cannot get it green.
+The Loop that reviews a pull request against Stack Rules and its linked issue, fixes what it can, and merges it once `Reference Project` and the review are green. Hands a PR to a human only when it cannot get it green.
 _Avoid_: Auto-merge bot, PR bot, code review action
 
 **Finding**:

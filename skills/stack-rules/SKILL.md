@@ -60,7 +60,7 @@ API Tests are `apps/api/test/*.api-spec.ts` (`vitest.api.config.ts` collects tha
 
 ## The Loop boundary
 
-Loops open pull requests. The Review Loop is the only thing that merges, and only when CI and its own review are green (ADR 0008). No Loop implements a feature: the Kit Loop implements triaged Kit issues, the Error Loop fixes production errors, the Sync Loop merges the Reference Project. Feature work is interactive, always.
+A Loop is a skill the owner starts on demand, not a scheduled job (ADR 0009). Loops open pull requests. The Review Loop is the only thing that merges, and only when `Reference Project` and its own review are green (ADR 0008). No Loop implements a feature: the Kit Loop implements triaged Kit issues, the Error Loop fixes production errors, the Sync Loop merges the Reference Project. Feature work is interactive, always.
 
 ## The `Upgrade:` line
 

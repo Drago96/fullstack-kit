@@ -1,17 +1,19 @@
 ---
 name: error-loop
-description: Headless procedure turning unresolved Sentry issues into pull requests - reproduce with a failing test at the seam, fix, open one PR per Sentry issue, or file a needs-info issue when it cannot be reproduced. Used by the error-loop GitHub workflow in every Project; not for interactive use.
+description: Turn unresolved Sentry issues into pull requests - reproduce with a failing test at the seam, fix, open one PR per Sentry issue, or file a needs-info issue when it cannot be reproduced - "/error-loop", "run the Error Loop", "fix the production errors". Run on demand from a clean checkout of a Project's master; a session may also launch it as a subagent.
 ---
 
 # Error Loop
 
-You are fixing production errors in `$GITHUB_REPOSITORY`, from a fresh checkout of `master`. The Kit is at `$KIT_DIR`. Sentry: `$SENTRY_ORG/$SENTRY_PROJECT`, token in `$SENTRY_AUTH_TOKEN`. Handle at most `$MAX_ISSUES` Sentry issues this run.
+You are fixing production errors in this Project, from a clean checkout of `master`, with `gh` authenticated as the owner (`gh auth switch -u Drago96` first — the active account reverts between shells) and `SENTRY_ORG`, `SENTRY_PROJECT` and `SENTRY_AUTH_TOKEN` in the shell. Any of the three missing: say which and stop, the run needs them. `$MAX_ISSUES` is the number of Sentry issues to handle this run — 3 unless whoever invoked you said otherwise.
+
+The Kit is the directory this skill lives in: `scripts/error-loop/` is two levels up from this file.
 
 Do not chat. Produce pull requests and `needs-info` issues, and print one line per Sentry issue handled as your last output.
 
 ## 1. Pick the errors
 
-`bash $KIT_DIR/scripts/error-loop/pick.sh $MAX_ISSUES` prints the unresolved Sentry issues that have no open PR or issue on them yet, one JSON object per line (`id`, `shortId`, `title`, `permalink`, `count`), most events first. No output means nothing to do: stop.
+`bash <kit>/scripts/error-loop/pick.sh $MAX_ISSUES` prints the unresolved Sentry issues that have no open PR or issue on them yet, one JSON object per line (`id`, `shortId`, `title`, `permalink`, `count`), most events first. No output means nothing to do: stop.
 
 Then do sections 2-6 for each line, in order, one at a time. A Sentry issue you cannot finish is its own section 6; it never stops the next one.
 
@@ -103,7 +105,7 @@ Sentry: <permalink> — <shortId>, <count> events
 
 ## Never
 
-- Merge, approve, or arm auto-merge. The Review Loop reviews this PR (ADR 0008); `ready-for-human` says a human should look before it deploys.
+- Merge or approve. `/review-loop <pr>` reviews this PR (ADR 0008); `ready-for-human` says a human should look before it deploys.
 - Push to `master`, or to a branch other than the one for the Sentry issue in hand.
 - Resolve, assign, ignore or comment on anything in Sentry. The Loop only reads it.
 - Handle more than `$MAX_ISSUES` Sentry issues, or open more than one PR for one of them.

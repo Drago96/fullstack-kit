@@ -5,7 +5,7 @@ description: Use when working in a Project and something turns out to belong in 
 
 # Harvest
 
-File a Lesson (a candidate improvement to the Kit found while working on a Project) as a `needs-triage` issue on the Kit. Triage stays human; the Kit Loop turns triaged Lessons into PRs (ADR 0005).
+File a Lesson (a candidate improvement to the Kit found while working on a Project) as a `needs-triage` issue on the Kit. Triage stays human; the Kit Loop turns triaged Lessons into PRs when the owner runs it (ADR 0005, ADR 0009).
 
 The Kit repo is always `Drago96/fullstack-kit` - pass `--repo` so this works from any directory.
 
