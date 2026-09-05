@@ -263,10 +263,14 @@ pause "Provisioning $SLUG. Enter to continue."
 stage "Neon: Postgres"
 say "Creating the Project's database. A project of this name is reused, not replaced."
 neonctl auth >/dev/null 2>&1 || pause "A browser opened for Neon login. Enter when done."
-neon_id=$(neonctl projects list --output json | jq -r --arg n "$SLUG" \
-  'first((.projects // [])[] | select(.name == $n) | .id) // empty')
+# An account in an organization gets an interactive "which organization?" menu from every
+# neonctl command that lacks --org-id, and the menu text is not JSON. Pick the first org
+# once; a personal account has none and the flag stays empty.
+neon_org=$(neonctl orgs list --output json 2>/dev/null | jq -r 'if type == "array" then .[0].id // empty else empty end')
+neon_id=$(neonctl projects list ${neon_org:+--org-id=$neon_org} --output json | jq -r --arg n "$SLUG" \
+  'first((if type == "array" then . else .projects // [] end)[] | select(.name == $n) | .id) // empty')
 if [[ -z "$neon_id" ]]; then
-  neon_id=$(neonctl projects create --name "$SLUG" --output json | jq -r '.project.id')
+  neon_id=$(neonctl projects create --name "$SLUG" ${neon_org:+--org-id=$neon_org} --output json | jq -r '.project.id // .id')
   say "created Neon project $neon_id"
 else
   say "reusing Neon project $neon_id"
