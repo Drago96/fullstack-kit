@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "reference",
+    "slug": "reference",
+    "scheme": "reference",
+    "newArchEnabled": true,
+    "plugins": ["expo-router"],
+    "updates": { "enabled": false }
+  }
+}

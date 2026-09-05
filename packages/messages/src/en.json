@@ -22,6 +22,7 @@
     "body": "Body",
     "add": "Add note",
     "count": "{count, plural, =0 {No notes yet} one {# note} other {# notes}}",
+    "loadFailed": "Could not load notes",
     "signInToSee": "Log in to see your notes"
   },
   "auth": {
