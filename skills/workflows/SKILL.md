@@ -24,11 +24,11 @@ The agent proposes which one and why. The human decides — including deciding t
 
 `/diagnosing-bugs` → a failing test at the seam → the fix → PR.
 
-Reproduce before fixing: an API Test for anything the API raises, an E2E Test for anything the browser does. Prove the test earns its place by stashing the fix and watching it fail. In production this same path runs unattended off Sentry as the Error Loop.
+Reproduce before fixing: an API Test for anything the API raises, an E2E Test for anything the browser does. Prove the test earns its place by stashing the fix and watching it fail. The Error Loop runs this same path off Sentry, on the production errors, whenever you start it.
 
 ## Lesson
 
-`/harvest` files it as a `needs-triage` issue on the Kit → `/triage` (human) → the Kit Loop turns a `ready-for-agent` issue into a PR → the Review Loop merges it.
+`/harvest` files it as a `needs-triage` issue on the Kit → `/triage` (human) → `/kit-loop` turns a `ready-for-agent` issue into a PR → `/review-loop <pr>` merges it. You start the last two; nothing runs on a schedule (ADR 0009).
 
 Nothing crosses from harvest to triage on its own; human judgement is the point (ADR 0005). Harvest at the phase boundaries — after implementing, after reviewing a Loop PR, after debugging — by asking "anything here belongs in the Kit?".
 
