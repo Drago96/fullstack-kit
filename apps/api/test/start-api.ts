@@ -11,6 +11,18 @@ declare module 'vitest' {
 const PORT = 3101;
 const apiUrl = `http://localhost:${PORT}`;
 
+// mock keeps the LLM endpoint keyless, offline and deterministic; capture keeps the
+// verification and reset emails in memory, where the tests read them back.
+export const testEnv = {
+  PORT: String(PORT),
+  LOG_LEVEL: 'silent',
+  LLM_PROVIDER: 'mock',
+  API_URL: apiUrl,
+  WEB_URL: 'http://localhost:3000',
+  AUTH_SECRET: 'api-test-secret-that-is-long-enough-32',
+  EMAIL_TRANSPORT: 'capture',
+};
+
 async function waitForApi(child: ChildProcess) {
   const deadline = Date.now() + 15_000;
   while (Date.now() < deadline) {
@@ -28,8 +40,7 @@ export default async function startApi(project: TestProject) {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error('DATABASE_URL is required to run the API tests');
   const child = spawn('node', ['dist/main.js'], {
-    // mock keeps the LLM endpoint keyless, offline and deterministic under test.
-    env: { ...process.env, PORT: String(PORT), LOG_LEVEL: 'silent', LLM_PROVIDER: 'mock' },
+    env: { ...process.env, ...testEnv },
     stdio: ['ignore', 'ignore', 'inherit'],
   });
   await waitForApi(child);

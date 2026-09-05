@@ -20,6 +20,7 @@
     "@reference/contract": "workspace:*",
     "@sentry/nestjs": "10.73.0",
     "ai": "7.0.92",
+    "better-auth": "1.7.2",
     "drizzle-orm": "0.45.2",
     "nestjs-pino": "5.1.0",
     "nestjs-zod": "5.5.0",
@@ -27,6 +28,7 @@
     "pino-http": "11.0.0",
     "postgres": "3.4.9",
     "reflect-metadata": "0.2.2",
+    "resend": "6.25.0",
     "rxjs": "7.8.2",
     "zod": "4.5.4"
   },
