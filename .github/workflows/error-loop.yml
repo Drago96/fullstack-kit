@@ -78,6 +78,8 @@ jobs:
       - uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Without github_token the action mints a GitHub App token, which fails unless the Claude GitHub App is installed.
+          github_token: ${{ secrets.REVIEW_LOOP_GH_TOKEN || github.token }}
           prompt: |
             Use the Skill tool to load `error-loop` and follow it exactly. Its variables:
             SENTRY_ORG=${{ env.SENTRY_ORG }} SENTRY_PROJECT=${{ env.SENTRY_PROJECT }}
