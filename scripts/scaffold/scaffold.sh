@@ -115,9 +115,6 @@ This repo belongs to the personal account \`$OWNER\`. Run \`gh auth switch -u $O
 Never commit to \`main\`. Work on a branch named \`<issue>-<slug>\`, push it, and open a PR whose body says \`Closes #<issue>\`.
 EOF
 
-# The Loops reach a Project through the Kit, not through copied workflow files.
-rm -f .github/workflows/review-loop.yml .github/workflows/error-loop.yml
-
 git add .
 git commit --quiet --message "Scaffold $name from the Reference Project"
 
@@ -150,7 +147,6 @@ Nothing is provisioned yet. Still to create:
   - Sentry: the project and its DSN, which is the Error Loop's only signal
   - Google AI Studio: the Gemini API key
   - Resend: the API key for verification and password-reset email
-  - Tokens for the Loops: CLAUDE_CODE_OAUTH_TOKEN and REVIEW_LOOP_GH_TOKEN
 
 The wizard creates every one of them and writes the values into this repo's GitHub
 secrets and variables and Google Secret Manager. Re-running it is safe.

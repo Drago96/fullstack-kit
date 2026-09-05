@@ -29,9 +29,8 @@ Needs `git`, `pnpm`, `node` and an authenticated `gh`. The script runs `gh auth 
 2. Renames the Reference Project's identifiers: the `@reference/*` package scope everywhere it appears (imports, `package.json`, the turbo task id, the lockfile's importers), the root package name, the `reference://` deep-link scheme, and — with `--mobile` — the Expo `name`/`slug`/`scheme` and the auth client's storage prefix. Biome then re-sorts the imports the new scope reorders.
 3. Without `--mobile`, deletes `apps/mobile` along with its `knip.json` workspace and the `pnpm-workspace.yaml` release-age excludes only Expo needs, and regenerates the lockfile so `pnpm install --frozen-lockfile` still works.
 4. Writes the Project's `CLAUDE.md` (a pointer at the `stack-rules` skill, the tracker and the PR rule — never a copy of the conventions) and `docs/agents/` with the GitHub issue tracker and the five triage labels.
-5. Drops the Loops' workflow files. Loops reach a Project from the Kit, not from files copied into it.
-6. Commits, creates `Drago96/<name>` with `gh`, pushes, and creates the five triage labels.
-7. Prints the resources still to provision and the wizard command.
+5. Commits, creates `Drago96/<name>` with `gh`, pushes, and creates the five triage labels.
+6. Prints the resources still to provision and the wizard command.
 
 ## After it prints the hand-off
 
@@ -41,7 +40,7 @@ Run the wizard from the new Project's root, exactly as the hand-off says:
 cd <name> && bash scripts/provision.sh
 ```
 
-Nothing in the Project works before that: it has no database, no deploy identity, no Sentry DSN and no Loop tokens. Re-running the wizard is safe.
+Nothing in the Project works before that: it has no database, no deploy identity and no Sentry DSN. Re-running the wizard is safe.
 
 Then say what Scaffold deliberately did not decide, because only a human can:
 

@@ -82,12 +82,10 @@ present "docs/agents/triage-labels.md" "$acme/docs/agents/triage-labels.md"
 holds "CLAUDE.md points at Stack Rules" "$acme/CLAUDE.md" "stack-rules"
 holds "CLAUDE.md points at the tracker" "$acme/CLAUDE.md" "docs/agents/issue-tracker.md"
 present "the deploy workflows come along" "$acme/.github/workflows/deploy-api.yml"
-absent "no Review Loop workflow is copied" "$acme/.github/workflows/review-loop.yml"
-absent "no Error Loop workflow is copied" "$acme/.github/workflows/error-loop.yml"
 
 # ── The hand-off ──────────────────────────────────────────────────────────────
 holds "the hand-off names the wizard" "$tmp/handoff.txt" "bash scripts/provision.sh"
-for resource in Neon "Google Cloud" Vercel Sentry "Google AI Studio" Resend Tokens; do
+for resource in Neon "Google Cloud" Vercel Sentry "Google AI Studio" Resend; do
   holds "the hand-off lists $resource" "$tmp/handoff.txt" "  - $resource"
 done
 
