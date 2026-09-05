@@ -72,6 +72,8 @@ jobs:
         if: steps.pick.outputs.issue != ''
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Without github_token the action mints a GitHub App token, which fails unless the Claude GitHub App is installed.
+          github_token: ${{ secrets.REVIEW_LOOP_GH_TOKEN || github.token }}
           prompt: |
             Use the Skill tool to load `kit-loop` and follow it exactly. Its variables:
             ISSUE_NUMBER=${{ steps.pick.outputs.issue }} BRANCH=${{ steps.pick.outputs.branch }}
