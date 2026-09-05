@@ -107,6 +107,11 @@ cp "$KIT_ROOT/docs/agents/issue-tracker.md" "$KIT_ROOT/docs/agents/triage-labels
 cat > CLAUDE.md <<EOF
 Every convention and how-to for this Project lives in the Kit's \`stack-rules\` skill (\`fullstack-kit\` plugin) — read it before writing code; this file never copies it.
 
+## Kit skills
+
+- Not sure which skill comes next? Read the Kit's \`workflows\` skill.
+- After implementing, after debugging, and after reviewing a Loop PR, ask: does anything here belong in the Kit? If yes, run \`/harvest\`. Lessons are the only way the Kit improves (ADR 0005).
+
 ## Agent skills
 
 ### Issue tracker
