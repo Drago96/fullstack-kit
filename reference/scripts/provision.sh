@@ -312,9 +312,26 @@ while :; do
 done
 write_env GCP_PROJECT_ID "$GCP_PROJECT_ID"
 ask GCP_REGION "Cloud Run region:" europe-west1
-open_url "https://console.cloud.google.com/billing/linkedaccount?project=$GCP_PROJECT_ID"
-step "Signed in as $ACCOUNT_EMAIL, link a billing account — Cloud Run's free tier still requires one."
-pause "Enter once billing is linked."
+# Enabling the APIs below fails until a billing account is linked, so the wizard waits here
+# instead of failing on the first attempt. Only an open billing account can be linked; closed
+# ones (expired trials) show up on the link page but cannot be selected.
+billing_enabled() {
+  [[ "$(gcloud billing projects describe "$GCP_PROJECT_ID" --format='value(billingEnabled)' 2>/dev/null)" == "True" ]]
+}
+if ! billing_enabled; then
+  if [[ -z "$(gcloud billing accounts list --filter='open=true' --format='value(name)' 2>/dev/null)" ]]; then
+    open_url "https://console.cloud.google.com/billing/create"
+    step "Signed in as $ACCOUNT_EMAIL, you have no open billing account — create one first (Cloud Run's free tier still needs one)."
+    pause "Enter once the billing account exists."
+  fi
+  open_url "https://console.cloud.google.com/billing/linkedaccount?project=$GCP_PROJECT_ID"
+  step "Signed in as $ACCOUNT_EMAIL, link the billing account to $GCP_PROJECT_ID."
+  until billing_enabled; do
+    pause "Enter once billing is linked."
+    billing_enabled || warn "$GCP_PROJECT_ID still has no billing account linked"
+  done
+fi
+say "billing is linked to $GCP_PROJECT_ID"
 gcloud services enable run.googleapis.com artifactregistry.googleapis.com \
   iamcredentials.googleapis.com sts.googleapis.com secretmanager.googleapis.com \
   --project "$GCP_PROJECT_ID"
