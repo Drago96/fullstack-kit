@@ -10,7 +10,8 @@
     "apps/web": {
       "paths": {
         "@reference/api-client": ["../../packages/api-client/src/index.ts"],
-        "@reference/contract": ["../../packages/contract/src/index.ts"]
+        "@reference/contract": ["../../packages/contract/src/index.ts"],
+        "@reference/messages": ["../../packages/messages/src/index.ts"]
       }
     }
   }

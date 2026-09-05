@@ -58,6 +58,16 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationFailureDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -151,6 +161,39 @@
           "createdAt"
         ],
         "additionalProperties": false
+      },
+      "ValidationFailureDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "enum": [
+              400
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message"
+              ]
+            }
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "errors"
+        ]
       },
       "NoteListDto_Output": {
         "type": "array",
