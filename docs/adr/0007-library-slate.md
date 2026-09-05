@@ -2,7 +2,7 @@
 
 Fixed for every Project, chosen as the most agent-documented option in each slot unless noted:
 
-- UI: Tailwind + shadcn/ui (copied components, Radix, lucide). Mobile stays React Native core + Expo Router.
+- UI: Tailwind + shadcn/ui (copied components, Radix, cva/clsx/tailwind-merge for variants; lucide-react only once a component imports an icon). Mobile stays React Native core + Expo Router.
 - Forms: react-hook-form with the Zod resolver, validating against the same Contract schemas Nest validates with.
 - Client: openapi-typescript + openapi-fetch for the typed client, openapi-react-query for TanStack Query hooks. Server components call the fetch client directly.
 - Authorization: Better Auth admin plugin for roles (user/admin); ownership enforced in Nest guards and services. No policy library.
