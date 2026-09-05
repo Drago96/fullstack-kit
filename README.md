@@ -17,6 +17,7 @@ A Claude Code plugin holding the Skills, Workflows and Loops for building and ru
 - `implement` — the implement procedure both Loops and interactive sessions follow: test-first at pre-agreed seams with `tdd`, typecheck and tests as you go, `code-review` against the base branch, one PR closing the issue. Model-invocable, so subagents can run it too.
 - `kit-loop` — run it on the Kit to turn one triaged issue into a PR: read its brief, implement it test-first on its own branch, open the PR.
 - `review-loop` — run it on a pull request: a two-axis review against Stack Rules and the linked issue, up to two fix rounds, then a squash merge once `Reference Project` is green.
+- `sync-loop` — run it on a Project to take the Kit's latest Reference Project: merge `kit/reference`, resolve the conflicts by intent, and open one `ready-for-human` PR listing every resolved hunk and every `Upgrade:` step the incoming commits carry. `bash scripts/sync-loop/upgrade-lines.sh <from> <to>` prints those steps.
 - `error-loop` — run it on a Project to turn unresolved Sentry issues into PRs: reproduce with a failing test at the seam, fix, one PR per Sentry issue.
 - `harvest` — from any Project session, "harvest this" files a Lesson as a `needs-triage` issue on this repo (What happened / Kit part / Proposed change / Source). Its phase-boundary prompt — "anything here belongs in the Kit?" — is asked after implementing, after reviewing a Loop PR, and after debugging.
 
@@ -87,6 +88,10 @@ A Loop is a skill you run when you want it, in a checkout with `gh` authenticate
 ### Review Loop
 
 `/review-loop <pr>` from a checkout of the repo the PR is on. It reviews the PR against `STACK-RULES.md` and its linked issue, pushes at most two fix rounds, and on a clean verdict merges with `gh pr merge --squash` once `Reference Project` is green (ADR 0008). When Findings remain it labels the PR `ready-for-human` with them pinned at the top. Every PR still gets a review before it merges; the only change is that you start it. One-time repo setup: `Reference Project` required on `master` and direct pushes off.
+
+### Sync Loop
+
+`/sync-loop` from a clean checkout of a Project's `main`. It fetches the Kit's `reference` branch and stops at `already current` when there is nothing new; otherwise it merges it on a `sync/<sha>` branch — a real merge, so the shared history survives (ADR 0006) — resolves each conflict by intent with `resolving-merge-conflicts`, runs the Project's checks, and opens one PR labelled `ready-for-human` listing every resolved hunk and every `Upgrade:` line the incoming commits carry. It never merges: the Upgrade steps and the resolutions are yours to approve.
 
 ### Error Loop
 
