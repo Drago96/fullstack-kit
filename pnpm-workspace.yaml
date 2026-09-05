@@ -14,6 +14,22 @@ allowBuilds:
   # drizzle-kit pulls esbuild in; pnpm installs its platform binary as an optional
   # dependency, so the postinstall that would fetch one is not needed.
   esbuild: false
+# Transitive packages Dependabot flagged whose parent pins a vulnerable range and has no
+# release to bump to. Each key is scoped to the advisory's range, so a copy already outside
+# it is left alone. Scaffold strips this file of the mobile framework and its test greps
+# the whole file for that name, so the comments below name packages, not the framework.
+overrides:
+  # Dependabot #1 / GHSA-67mh-4wv8-2f99 (esbuild <= 0.24.2): drizzle-kit pulls esbuild
+  # through the deprecated @esbuild-kit/esm-loader, which pins ~0.18.20.
+  esbuild@<0.25.0: ^0.25.0
+  # Dependabot #2 / GHSA-w5hq-g745-h8pq (uuid < 11.1.1): the mobile app's native iOS config
+  # plugins reach uuid through xcode@3.0.1, whose latest release still pins ^7.0.3.
+  uuid@<11.1.1: ^11.1.1
+  # Not overridden: decode-uri-component (Dependabot #5 / GHSA-vcc3-ghjq-m6fr). Its only
+  # patched release, 0.5.0, is ESM-only, and its consumer here — query-string@7.1.3, which
+  # the mobile router loads with a CJS `require` — then gets the module namespace instead
+  # of the function and throws. query-string@9, the first release on 0.5.0, is ESM-only
+  # itself, so bumping that does not help either.
 minimumReleaseAgeExclude:
   - '@expo/cli@57.0.22'
   - '@expo/ui@57.0.16'
