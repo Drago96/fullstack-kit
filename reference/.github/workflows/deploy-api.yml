@@ -46,11 +46,12 @@ jobs:
         env:
           GCP_REGION: ${{ vars.GCP_REGION }}
 
-      # Every value below reaches the revision as a plain environment variable, so the
-      # secrets are readable by anyone with `run.services.get` on the GCP project. That
-      # is the single-owner trade the Kit takes for one fewer service to provision; move
-      # the four secret rows to the action's `secrets:` input backed by Secret Manager
-      # when a Project grows a second person.
+      # `env_vars` holds the non-secret config only. The five secrets are Secret Manager
+      # references: the revision stores their names, and the runtime service account
+      # resolves them at boot, so `run.services.get` shows no values. `provision.sh`
+      # creates each secret and grants that account roles/secretmanager.secretAccessor;
+      # this deploy account only attaches them (roles/run.admin plus
+      # roles/iam.serviceAccountUser on the runtime account) and cannot read them.
       - uses: google-github-actions/deploy-cloudrun@v3
         with:
           service: ${{ vars.CLOUD_RUN_SERVICE }}
@@ -58,12 +59,14 @@ jobs:
           image: ${{ env.IMAGE }}
           env_vars_update_strategy: overwrite
           env_vars: |-
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
-            AUTH_SECRET=${{ secrets.AUTH_SECRET }}
-            SENTRY_DSN=${{ secrets.SENTRY_DSN }}
-            RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
-            GOOGLE_GENERATIVE_AI_API_KEY=${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
             API_URL=${{ vars.API_URL }}
             WEB_URL=${{ vars.WEB_URL }}
             EMAIL_TRANSPORT=${{ vars.EMAIL_TRANSPORT }}
             LLM_PROVIDER=${{ vars.LLM_PROVIDER }}
+          secrets_update_strategy: overwrite
+          secrets: |-
+            DATABASE_URL=DATABASE_URL:latest
+            AUTH_SECRET=AUTH_SECRET:latest
+            SENTRY_DSN=SENTRY_DSN:latest
+            RESEND_API_KEY=RESEND_API_KEY:latest
+            GOOGLE_GENERATIVE_AI_API_KEY=GOOGLE_GENERATIVE_AI_API_KEY:latest

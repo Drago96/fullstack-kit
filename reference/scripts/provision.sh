@@ -213,6 +213,24 @@ record_write() {
   note "resources recorded in $RECORD_FILE (gitignored)"
 }
 
+# set_gcp_secret NAME VALUE stores a value in Secret Manager and lets the Cloud Run
+# runtime service account read it. The value reaches gcloud on stdin, so it never
+# touches disk or the terminal. Re-runs add a new version rather than replacing the
+# secret, which is what rotation looks like. Needs $GCP_PROJECT_ID and $RUNTIME_SA.
+GCP_SECRETS=()
+set_gcp_secret() {
+  local name="$1" value="$2"
+  gcloud secrets describe "$name" --project="$GCP_PROJECT_ID" >/dev/null 2>&1 ||
+    gcloud secrets create "$name" --replication-policy=automatic \
+      --project="$GCP_PROJECT_ID" >/dev/null
+  printf '%s' "$value" | gcloud secrets versions add "$name" --data-file=- \
+    --project="$GCP_PROJECT_ID" >/dev/null
+  gcloud secrets add-iam-policy-binding "$name" --role=roles/secretmanager.secretAccessor \
+    --member="serviceAccount:$RUNTIME_SA" --project="$GCP_PROJECT_ID" >/dev/null
+  GCP_SECRETS+=("$name")
+  printf '  %s✓ stored%s %s in Secret Manager\n' "$GREEN" "$RESET" "$name"
+}
+
 TOTAL_STAGES=11
 
 banner "Provision this Project"
@@ -248,7 +266,8 @@ if [[ -z "$neon_id" ]]; then
 else
   say "reusing Neon project $neon_id"
 fi
-set_secret DATABASE_URL "$(neonctl connection-string --project-id "$neon_id" --pooled)"
+DATABASE_URL=$(neonctl connection-string --project-id "$neon_id" --pooled)
+say "connection string captured; it goes into Secret Manager in stage 7, once GCP exists"
 record neon_project_id "$neon_id"
 pause
 
@@ -264,7 +283,8 @@ open_url "https://console.cloud.google.com/billing/linkedaccount?project=$GCP_PR
 step "Link a billing account — Cloud Run's free tier still requires one."
 pause "Enter once billing is linked."
 gcloud services enable run.googleapis.com artifactregistry.googleapis.com \
-  iamcredentials.googleapis.com sts.googleapis.com --project "$GCP_PROJECT_ID"
+  iamcredentials.googleapis.com sts.googleapis.com secretmanager.googleapis.com \
+  --project "$GCP_PROJECT_ID"
 GCP_ARTIFACT_REPOSITORY=api
 gcloud artifacts repositories describe "$GCP_ARTIFACT_REPOSITORY" \
   --location="$GCP_REGION" --project="$GCP_PROJECT_ID" >/dev/null 2>&1 ||
@@ -321,17 +341,30 @@ pause
 stage "Google Cloud: Cloud Run service"
 say "Created from Google's hello image so the service has a URL before the first"
 say "real deploy; Deploy API replaces the image on every push to main."
+say "The revision runs as its own service account, which is the identity Secret"
+say "Manager grants read access to — the project's default compute account carries"
+say "Editor and would read every secret in the project."
 CLOUD_RUN_SERVICE=api
-gcloud run services describe "$CLOUD_RUN_SERVICE" --region="$GCP_REGION" \
-  --project="$GCP_PROJECT_ID" >/dev/null 2>&1 ||
+RUNTIME_SA="api-runtime@$GCP_PROJECT_ID.iam.gserviceaccount.com"
+gcloud iam service-accounts describe "$RUNTIME_SA" --project="$GCP_PROJECT_ID" >/dev/null 2>&1 ||
+  gcloud iam service-accounts create api-runtime \
+    --display-name="Cloud Run API runtime" --project="$GCP_PROJECT_ID"
+if gcloud run services describe "$CLOUD_RUN_SERVICE" --region="$GCP_REGION" \
+  --project="$GCP_PROJECT_ID" >/dev/null 2>&1; then
+  gcloud run services update "$CLOUD_RUN_SERVICE" --service-account="$RUNTIME_SA" \
+    --region="$GCP_REGION" --project="$GCP_PROJECT_ID" --quiet >/dev/null
+else
   gcloud run deploy "$CLOUD_RUN_SERVICE" --region="$GCP_REGION" --project="$GCP_PROJECT_ID" \
-    --image=us-docker.pkg.dev/cloudrun/container/hello --allow-unauthenticated --quiet
+    --image=us-docker.pkg.dev/cloudrun/container/hello --service-account="$RUNTIME_SA" \
+    --allow-unauthenticated --quiet
+fi
 API_URL=$(gcloud run services describe "$CLOUD_RUN_SERVICE" --region="$GCP_REGION" \
   --project="$GCP_PROJECT_ID" --format='value(status.url)')
 say "API URL: $API_URL"
 set_var CLOUD_RUN_SERVICE "$CLOUD_RUN_SERVICE"
 set_var API_URL "$API_URL"
 record cloud_run_service "$CLOUD_RUN_SERVICE"
+record cloud_run_runtime_service_account "$RUNTIME_SA"
 record api_url "$API_URL"
 pause
 
@@ -363,7 +396,8 @@ pause
 # ── 7 ─────────────────────────────────────────────────────────────────────
 stage "App configuration"
 say "The rest of what the API validates at boot (apps/api/src/env.ts)."
-set_secret AUTH_SECRET "$(openssl rand -hex 32)"
+set_gcp_secret DATABASE_URL "$DATABASE_URL"
+set_gcp_secret AUTH_SECRET "$(openssl rand -hex 32)"
 say "AUTH_SECRET generated and stored. Rotating it logs everyone out."
 set_var EMAIL_TRANSPORT resend
 set_var LLM_PROVIDER google
@@ -377,7 +411,7 @@ step "Create or open an organization, then two projects: '$SLUG-api' (Node) and"
 step "'$SLUG-web' (Next.js). Each shows its DSN on the setup page."
 ask_secret SENTRY_DSN "Paste the API project DSN:"
 ask_secret NEXT_PUBLIC_SENTRY_DSN "Paste the web project DSN:"
-set_secret SENTRY_DSN "$SENTRY_DSN"
+set_gcp_secret SENTRY_DSN "$SENTRY_DSN"
 printf '%s' "$NEXT_PUBLIC_SENTRY_DSN" | vercel env add NEXT_PUBLIC_SENTRY_DSN production --force >/dev/null
 say "web DSN stored as a Vercel production environment variable"
 say "The Error Loop reads Sentry's API, so it needs an auth token too."
@@ -398,7 +432,7 @@ say "POST /ask runs on Gemini Flash, whose free tier costs nothing (ADR 0002)."
 open_url "https://aistudio.google.com/apikey"
 step "Create an API key, then copy it."
 ask_secret GOOGLE_GENERATIVE_AI_API_KEY "Paste the Gemini API key:"
-set_secret GOOGLE_GENERATIVE_AI_API_KEY "$GOOGLE_GENERATIVE_AI_API_KEY"
+set_gcp_secret GOOGLE_GENERATIVE_AI_API_KEY "$GOOGLE_GENERATIVE_AI_API_KEY"
 pause
 
 # ── 10 ────────────────────────────────────────────────────────────────────
@@ -407,7 +441,7 @@ say "Verification and password-reset messages go out through Resend."
 open_url "https://resend.com/api-keys"
 step "Create an API key with send access, then copy it."
 ask_secret RESEND_API_KEY "Paste the Resend API key:"
-set_secret RESEND_API_KEY "$RESEND_API_KEY"
+set_gcp_secret RESEND_API_KEY "$RESEND_API_KEY"
 pause
 
 # ── 11 ────────────────────────────────────────────────────────────────────
@@ -424,5 +458,6 @@ ask_secret REVIEW_LOOP_GH_TOKEN "Paste the GitHub PAT:"
 set_secret REVIEW_LOOP_GH_TOKEN "$REVIEW_LOOP_GH_TOKEN"
 pause
 
+record gcp_secrets "${GCP_SECRETS[*]}"
 record_write
 finish
