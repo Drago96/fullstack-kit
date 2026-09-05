@@ -9,7 +9,7 @@ One self-contained instruction set that Claude Code loads to do one kind of task
 _Avoid_: Prompt, command, recipe
 
 **Workflow**:
-A named, ordered path through skills, written as prose (e.g. idea → spec → tickets → implement).
+A named, ordered path through skills, written as prose (e.g. idea → spec → tickets → implement). The four of them live in the `workflows` skill.
 _Avoid_: Pipeline, flow, process, orchestration script
 
 **Loop**:
@@ -33,7 +33,7 @@ The one real, CI-green monorepo inside the Kit that every Project starts from.
 _Avoid_: Template, example app, demo
 
 **Stack Rules**:
-The document in the Kit (`STACK-RULES.md`) holding the conventions every Project follows (module shape, Contract-first endpoints, migrations, deploy). Projects point at it; they never copy it. Its numbered hard rules are what the Review Loop blocks on.
+The document in the Kit (`STACK-RULES.md`) holding the conventions every Project follows (module shape, Contract-first endpoints, migrations, deploy), plus the `stack-rules` skill carrying the how-to for each. Projects point at them; they never copy them. Its numbered hard rules are what the Review Loop blocks on.
 _Avoid_: Guidelines, best practices, conventions doc
 
 ## Self-improvement
