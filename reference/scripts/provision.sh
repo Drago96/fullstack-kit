@@ -105,33 +105,39 @@ _existing() {
   printf '%s' "${line#*=}"
 }
 
-# ask KEY "Prompt" reads a value into $KEY. Offers the existing .env value as
-# a default on re-runs (Enter keeps it). Visible input (non-secret).
+# ask KEY "Prompt" [default] reads a value into $KEY. Enter takes the existing .env
+# value on re-runs, else the default. Without a default the question repeats until
+# answered; an explicit empty default ("") means an empty answer is allowed.
+_prompt() { # _prompt "Prompt" current default
+  local hint=""
+  if [[ -n "$2" ]]; then hint="[Enter keeps current]"; elif [[ -n "$3" ]]; then hint="[Enter for $3]"; fi
+  printf '  %s%s%s %s%s%s ' "$BOLD" "$1" "$RESET" "$DIM" "$hint" "$RESET"
+}
 ask() {
-  local key="$1" prompt="$2" current input
+  local key="$1" prompt="$2" current input default="${3-}" optional=$(( $# >= 3 ))
   current=$(_existing "$key" || true)
-  if [[ -n "$current" ]]; then
-    printf '  %s%s%s %s[Enter keeps current]%s ' "$BOLD" "$prompt" "$RESET" "$DIM" "$RESET"
-  else
-    printf '  %s%s%s ' "$BOLD" "$prompt" "$RESET"
-  fi
-  read -r input || true
-  [[ -z "$input" && -n "$current" ]] && input="$current"
+  while :; do
+    _prompt "$prompt" "$current" "$default"
+    read -r input || true
+    [[ -z "$input" ]] && input="${current:-$default}"
+    [[ -n "$input" || "$optional" -eq 1 ]] && break
+    warn "a value is required"
+  done
   printf -v "$key" '%s' "$input"
 }
 
-# ask_secret KEY "Prompt" is like ask, but input is hidden.
+# ask_secret KEY "Prompt" is like ask, but input is hidden and always required.
 ask_secret() {
   local key="$1" prompt="$2" current input
   current=$(_existing "$key" || true)
-  if [[ -n "$current" ]]; then
-    printf '  %s%s%s %s[Enter keeps current]%s ' "$BOLD" "$prompt" "$RESET" "$DIM" "$RESET"
-  else
-    printf '  %s%s%s ' "$BOLD" "$prompt" "$RESET"
-  fi
-  read -rs input || true
-  printf '\n'
-  [[ -z "$input" && -n "$current" ]] && input="$current"
+  while :; do
+    _prompt "$prompt" "$current" ""
+    read -rs input || true
+    printf '\n'
+    [[ -z "$input" ]] && input="$current"
+    [[ -n "$input" ]] && break
+    warn "a value is required"
+  done
   printf -v "$key" '%s' "$input"
 }
 
@@ -261,7 +267,6 @@ record repository "$REPO"
 # the one CLI that silently uses whatever account is active, so it is pinned for the rest
 # of this run through CLOUDSDK_CORE_ACCOUNT, which leaves your global gcloud config alone.
 ask ACCOUNT_EMAIL "Personal account email for every vendor (Google, Neon, Vercel, Sentry, Resend):"
-[[ -n "$ACCOUNT_EMAIL" ]] || fail "an account email is required"
 write_env ACCOUNT_EMAIL "$ACCOUNT_EMAIL"
 export CLOUDSDK_CORE_ACCOUNT="$ACCOUNT_EMAIL"
 gcloud auth list --filter="account:$ACCOUNT_EMAIL" --format='value(account)' 2>/dev/null | grep -qx "$ACCOUNT_EMAIL" ||
@@ -295,10 +300,8 @@ pause
 
 # ── 3 ─────────────────────────────────────────────────────────────────────
 stage "Google Cloud: project, APIs, Artifact Registry"
-ask GCP_PROJECT_ID "Google Cloud project id (e.g. $SLUG-prod):"
-[[ -n "$GCP_PROJECT_ID" ]] || fail "a Google Cloud project id is required"
-ask GCP_REGION "Cloud Run region [europe-west1]:"
-GCP_REGION=${GCP_REGION:-europe-west1}
+ask GCP_PROJECT_ID "Google Cloud project id:" "$SLUG-prod"
+ask GCP_REGION "Cloud Run region:" europe-west1
 gcloud projects describe "$GCP_PROJECT_ID" >/dev/null 2>&1 ||
   gcloud projects create "$GCP_PROJECT_ID"
 open_url "https://console.cloud.google.com/billing/linkedaccount?project=$GCP_PROJECT_ID"
@@ -404,8 +407,7 @@ pause "Enter once Root Directory is apps/web."
 open_url "https://vercel.com/account/settings/tokens"
 step "Create a token scoped to this project's team, then copy it."
 ask_secret VERCEL_TOKEN "Paste the Vercel token:"
-ask WEB_URL "Production URL of the web app [https://$SLUG.vercel.app]:"
-WEB_URL=${WEB_URL:-https://$SLUG.vercel.app}
+ask WEB_URL "Production URL of the web app:" "https://$SLUG.vercel.app"
 printf '%s' "$API_URL" | vercel env add API_URL production --force >/dev/null
 say "API_URL stored as a Vercel production environment variable"
 set_secret VERCEL_TOKEN "$VERCEL_TOKEN"
@@ -425,7 +427,7 @@ say "AUTH_SECRET generated and stored. Rotating it logs everyone out."
 set_var EMAIL_TRANSPORT resend
 set_var LLM_PROVIDER google
 say "The mobile app's deep-link scheme is a trusted origin for its auth requests."
-ask MOBILE_URL "Mobile deep-link scheme, e.g. $SLUG:// (Enter for none):"
+ask MOBILE_URL "Mobile deep-link scheme, e.g. $SLUG:// (Enter for none):" ""
 # Empty is the Project generated without mobile: deploy-api.yml then omits the row.
 set_var MOBILE_URL "$MOBILE_URL"
 pause
@@ -468,8 +470,7 @@ open_url "https://resend.com/api-keys"
 step "Signed in as $ACCOUNT_EMAIL, create an API key with send access, then copy it."
 ask_secret RESEND_API_KEY "Paste the Resend API key:"
 set_gcp_secret RESEND_API_KEY "$RESEND_API_KEY"
-ask EMAIL_FROM "Sender of every message [$SLUG <onboarding@resend.dev>]:"
-EMAIL_FROM=${EMAIL_FROM:-"$SLUG <onboarding@resend.dev>"}
+ask EMAIL_FROM "Sender of every message:" "$SLUG <onboarding@resend.dev>"
 set_var EMAIL_FROM "$EMAIL_FROM"
 pause
 
