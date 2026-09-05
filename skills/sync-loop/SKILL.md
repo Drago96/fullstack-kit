@@ -20,6 +20,8 @@ git rev-list --count HEAD..kit/reference
 
 `0` means this Project already carries every Reference Project commit: print `already current` and stop. No branch, no PR, nothing.
 
+A `sync/<sha>` branch that already exists for this same sha is the last run's PR, still waiting on a human: say which PR and stop. Two syncs of the same Reference Project commit is one sync too many.
+
 No `kit` remote means this Project was not scaffolded from the `reference` branch (ADR 0006). Say so and stop; adding one by hand would merge unrelated histories.
 
 ## 2. Branch
