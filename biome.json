@@ -45,6 +45,11 @@
       "linter": { "rules": { "performance": { "noBarrelFile": "off" } } }
     }
   ],
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
   "javascript": {
     "formatter": { "quoteStyle": "single" },
     "parser": { "unsafeParameterDecoratorsEnabled": true }
