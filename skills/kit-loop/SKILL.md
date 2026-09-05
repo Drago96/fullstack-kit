@@ -23,11 +23,9 @@ Read `CLAUDE.md`, `CONTEXT.md`, `STACK-RULES.md` and every ADR in `docs/adr/` th
 
 ## 4. Implement
 
-The smallest change that satisfies the acceptance criteria. No abstraction with one implementation, no config for a value that never changes, no scaffolding for later.
+Run the `implement` skill for the procedure, scoped to the acceptance criteria. Sections 5 and 6 below override its commit and pull request steps.
 
-Test first, at the seams only (Stack Rule 7): API Tests (`*.api-spec.ts` against a running Nest) and E2E Tests (Playwright), never unit tests of controllers, services or components through mocks. Write the failing test, then the code.
-
-Inside `reference/`, run the tools the way CI does: `pnpm -C reference install --frozen-lockfile` once, then `pnpm -C reference turbo run typecheck` and the single test you are driving as you go, and `pnpm -C reference biome ci . && pnpm -C reference turbo run typecheck build test api-test` at the end. If you changed the Contract, `pnpm -C reference turbo run generate` and commit the regenerated client. Outside `reference/` there is no suite: run whatever check the changed thing ships (e.g. `bash scripts/<area>/*.test.sh`).
+Inside `reference/`, its checks are run the way CI does: `pnpm -C reference install --frozen-lockfile` once, then `pnpm -C reference turbo run typecheck` and the single test you are driving as you go, and `pnpm -C reference biome ci . && pnpm -C reference turbo run typecheck build test api-test` at the end. If you changed the Contract, `pnpm -C reference turbo run generate` and commit the regenerated client. Outside `reference/` there is no suite: run whatever check the changed thing ships (e.g. `bash scripts/<area>/*.test.sh`).
 
 Out of bounds: `.github/workflows/`, `STACK-RULES.md`, and every file under `skills/`. Those are the Loops' own instructions and need a human-triaged Lesson (`harvest`). If the brief cannot be implemented without one of them, open no PR: `gh issue comment $ISSUE_NUMBER` naming the out-of-bounds file and stop there.
 
@@ -48,8 +46,11 @@ Closes #$ISSUE_NUMBER
 ## Verification
 <the commands you ran and their results>
 
-## Deviations from the brief
-<only when there are any, with the reason; omit this section otherwise>
+## Deviations
+<from the brief, only when there are any, with the reason; omit this section otherwise>
+
+## Follow-ups
+<what the brief left for later, only when there is any; omit this section otherwise>
 ```
 
 ## Never

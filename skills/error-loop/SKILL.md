@@ -36,7 +36,9 @@ Run it (`pnpm turbo run api-test` or `e2e`, filtered to the one file). If it doe
 
 ## 4. Fix
 
-The smallest change that makes the test pass, where the data lives (Stack Rule 6), never a guard bolted onto the caller. Then prove the test earns its place:
+Run the `implement` skill for the procedure; the failing test from section 3 is the pre-agreed seam, and section 5 below overrides its commit and pull request steps. The fix is the smallest change that makes that test pass, where the data lives (Stack Rule 6), never a guard bolted onto the caller.
+
+Then prove the test earns its place:
 
 ```
 git stash push -- <the files you changed for the fix>   # the test stays

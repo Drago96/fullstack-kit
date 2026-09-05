@@ -13,6 +13,7 @@ A Claude Code plugin holding the Skills, Workflows and Loops for building and ru
 
 - `stack-rules` — how to build anything on this stack (endpoint, migration, form, translated string, LLM call, job, E2E Test), the conventions the Loops depend on, and what to propose when a task needs a capability the stack leaves out. The rules themselves are `STACK-RULES.md`; every Project's `CLAUDE.md` is a one-line pointer at this skill.
 - `workflows` — the ordered paths through the skills: feature, bug, Lesson, new Project.
+- `implement` — the implement procedure both Loops and interactive sessions follow: test-first at pre-agreed seams with `tdd`, typecheck and tests as you go, `code-review` against the base branch, one PR closing the issue. Model-invocable, so subagents can run it too.
 - `kit-loop` — the headless implement procedure the Kit Loop runs: read a triaged issue's brief, implement it test-first on its own branch, open a PR. Not for interactive use.
 - `error-loop` — the headless procedure the Error Loop runs: reproduce an unresolved Sentry issue with a failing test at the seam, fix it, open one PR per Sentry issue. Not for interactive use.
 - `harvest` — from any Project session, "harvest this" files a Lesson as a `needs-triage` issue on this repo (What happened / Kit part / Proposed change / Source). The Kit's implement, review and debugging skills, once they exist, will fire its phase-boundary prompt ("anything here belongs in the Kit?").
