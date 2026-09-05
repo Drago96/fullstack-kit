@@ -52,7 +52,7 @@ The Kit repo is always `Drago96/fullstack-kit` - pass `--repo` so this works fro
 
 ## Phase-boundary prompt
 
-The Kit's implement, review and debugging skills, once they exist, will fire this prompt at their phase boundaries:
+At every phase boundary — after implementing, after reviewing a Loop PR, after debugging — ask:
 
 > Anything here belongs in the Kit?
 

@@ -17,7 +17,7 @@ A Claude Code plugin holding the Skills, Workflows and Loops for building and ru
 - `kit-loop` — run it on the Kit to turn one triaged issue into a PR: read its brief, implement it test-first on its own branch, open the PR.
 - `review-loop` — run it on a pull request: a two-axis review against Stack Rules and the linked issue, up to two fix rounds, then a squash merge once `Reference Project` is green.
 - `error-loop` — run it on a Project to turn unresolved Sentry issues into PRs: reproduce with a failing test at the seam, fix, one PR per Sentry issue.
-- `harvest` — from any Project session, "harvest this" files a Lesson as a `needs-triage` issue on this repo (What happened / Kit part / Proposed change / Source). The Kit's implement, review and debugging skills, once they exist, will fire its phase-boundary prompt ("anything here belongs in the Kit?").
+- `harvest` — from any Project session, "harvest this" files a Lesson as a `needs-triage` issue on this repo (What happened / Kit part / Proposed change / Source). Its phase-boundary prompt — "anything here belongs in the Kit?" — is asked after implementing, after reviewing a Loop PR, and after debugging.
 
 ## Composed plugins
 
