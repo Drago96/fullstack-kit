@@ -11,6 +11,8 @@ A Claude Code plugin holding the Skills, Workflows and Loops for building and ru
 
 ## Skills
 
+- `stack-rules` — how to build anything on this stack (endpoint, migration, form, translated string, LLM call, job, E2E Test), the conventions the Loops depend on, and what to propose when a task needs a capability the stack leaves out. The rules themselves are `STACK-RULES.md`; every Project's `CLAUDE.md` is a one-line pointer at this skill.
+- `workflows` — the ordered paths through the skills: feature, bug, Lesson, new Project.
 - `kit-loop` — the headless implement procedure the Kit Loop runs: read a triaged issue's brief, implement it test-first on its own branch, open a PR. Not for interactive use.
 - `error-loop` — the headless procedure the Error Loop runs: reproduce an unresolved Sentry issue with a failing test at the seam, fix it, open one PR per Sentry issue. Not for interactive use.
 - `harvest` — from any Project session, "harvest this" files a Lesson as a `needs-triage` issue on this repo (What happened / Kit part / Proposed change / Source). The Kit's implement, review and debugging skills, once they exist, will fire its phase-boundary prompt ("anything here belongs in the Kit?").
@@ -39,9 +41,7 @@ pnpm --filter mobile start   # Expo dev server
 
 Workspaces: `apps/api` (NestJS), `apps/web` (Next.js App Router), `apps/mobile` (Expo Router, opt-in), `packages/contract` (Zod schemas, the source of truth), `packages/api-client` (typed client generated from the OpenAPI spec Nest derives from the Contract), `packages/messages` (ICU messages, one file per locale).
 
-Adding an endpoint: schema in `packages/contract` → controller in `apps/api` → `pnpm turbo run generate` → commit the regenerated `packages/api-client`. CI fails on drift.
-
-Adding a translated string: key in `packages/messages/src/en.json` and every other locale file (a missing key fails typecheck) → `useTranslations`/`getTranslations` in `apps/web`. Validation messages in the Contract are error codes (`note.title.required`), which both the API's 400 body and the form resolver return and the web app translates under `errors.<code>`.
+Adding an endpoint, a migration, a form, a translated string, an LLM call, a job or an E2E Test: the `stack-rules` skill (`skills/stack-rules/SKILL.md`) is the one copy of every how-to.
 
 Auth and email: Better Auth runs inside Nest, mounted at `/auth` and reached from the browser same-origin through the `/api` rewrite, with its tables in the same Drizzle migrations and the `admin` plugin giving every user a role. `SessionGuard` and `AdminGuard` in `apps/api/src/auth/session.ts` guard the routes that need one; Notes belong to the user who created them. Boot needs `AUTH_SECRET`, `API_URL` and `WEB_URL`. `EMAIL_TRANSPORT=capture` keeps verification and reset messages in memory and serves them from `GET /debug/emails`, which is what local runs, the API Tests and the E2E Tests use; `EMAIL_TRANSPORT=resend` sends them for real and fails boot without `RESEND_API_KEY`. Adding a Better Auth plugin means adding its columns to `apps/api/src/db/schema.ts` and running `pnpm --filter api db:generate`.
 
