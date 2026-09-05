@@ -1,0 +1,56 @@
+name: CI
+
+# The gate on every pull request: the same steps the Kit runs against `reference/` in its
+# own `.github/workflows/ci.yml`, one directory up. Keep the two in step — a Project merges
+# this file from the Kit's `reference` branch, so a step that only exists in one of them
+# comes back on the next sync.
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+env:
+  # next build bakes this into the /api rewrite; the E2E servers listen on the same port.
+  API_URL: http://localhost:3001
+  DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Lint and format
+        run: pnpm biome ci .
+      - name: Unused files, exports and dependencies
+        run: pnpm knip
+      - name: Typecheck, build, unit tests, API tests
+        run: pnpm turbo run typecheck build test api-test
+      - name: Client drift check
+        run: |
+          pnpm turbo run generate
+          git diff --exit-code -- apps/api/openapi.json packages/api-client
+      - name: Install Playwright
+        run: pnpm --filter web exec playwright install --with-deps chromium
+      - name: E2E tests
+        run: pnpm turbo run e2e
+      - name: Docker build
+        run: docker build -f apps/api/Dockerfile .
