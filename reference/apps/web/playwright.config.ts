@@ -12,7 +12,8 @@ export default defineConfig({
     {
       command: 'pnpm --filter api start',
       url: 'http://localhost:3001/hello',
-      env: { PORT: '3001', LOG_LEVEL: 'warn' },
+      // mock keeps the LLM endpoint keyless, offline and deterministic under test.
+      env: { PORT: '3001', LOG_LEVEL: 'warn', LLM_PROVIDER: 'mock' },
       reuseExistingServer: !process.env.CI,
     },
     {

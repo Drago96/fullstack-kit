@@ -6,6 +6,10 @@ allowBuilds:
   # platform-specific optional dependency, so no postinstall build is needed.
   "@parcel/watcher": false
   "@scarf/scarf": false
+  # @sentry/nextjs pulls @sentry/cli in for source-map upload, which needs an auth
+  # token this Project does not set, so the postinstall that downloads its binary
+  # is not needed.
+  "@sentry/cli": false
   "@swc/core": false
   # drizzle-kit pulls esbuild in; pnpm installs its platform binary as an optional
   # dependency, so the postinstall that would fetch one is not needed.
