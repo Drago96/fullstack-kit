@@ -54,6 +54,10 @@ _Avoid_: Self-learning loop, auto-improve
 The Loop in every Project that merges the Kit's latest Reference Project into the Project as a pull request.
 _Avoid_: Update, upgrade, pull from kit
 
+**Upgrade line**:
+A commit-body line starting `Upgrade:` on a Reference Project commit, naming the one manual step every Project must take after merging it. The Sync Loop copies each into its pull request verbatim.
+_Avoid_: Migration note, changelog entry, breaking change
+
 **Error Loop**:
 The Loop in every Project that turns an unresolved Sentry issue into a pull request carrying a fix and a regression test, or into a `needs-info` issue when it cannot reproduce it.
 _Avoid_: Error bot, Sentry loop, auto-fix, self-healing
