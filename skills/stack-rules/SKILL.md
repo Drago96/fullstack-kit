@@ -78,4 +78,4 @@ The Sync Loop copies every such line from the incoming commits into the PR it op
 
 ## When the stack does not have it
 
-`STACK-RULES.md`'s absent list names the intended option for background jobs, file storage, feature flags, analytics, rate limiting, policy authorization, infrastructure as code and mobile i18n. The moment a task needs one, name that option, say what it would cost, and stop. Adopting it is a Lesson to `harvest`, not a decision to make mid-ticket.
+`STACK-RULES.md`'s absent list names the intended option for background jobs, file storage, feature flags, analytics, rate limiting, policy authorization, infrastructure as code and Kubernetes. The moment a task needs one, name that option, say what it would cost, and stop. Adopting it is a Lesson to `harvest`, not a decision to make mid-ticket.
