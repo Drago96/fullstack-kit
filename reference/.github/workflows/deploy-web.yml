@@ -1,0 +1,41 @@
+name: Deploy Web
+
+# Builds Next with the Vercel CLI and promotes the result to production. `vercel pull`
+# brings down the project's settings (Root Directory `apps/web`) and its production
+# environment, which is where API_URL and NEXT_PUBLIC_SENTRY_DSN live —
+# `scripts/provision.sh` sets both with `vercel env add`.
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-web
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Vercel
+    runs-on: ubuntu-latest
+    env:
+      # The CLI reads these instead of a checked-in .vercel/project.json.
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      # The build runs `pnpm install` in the workspace root, so both must be present.
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Pull, build and deploy
+        run: |
+          npx --yes vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
+          npx --yes vercel@latest build --prod --token="$VERCEL_TOKEN"
+          npx --yes vercel@latest deploy --prebuilt --prod --token="$VERCEL_TOKEN"

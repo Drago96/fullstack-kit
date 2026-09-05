@@ -1,0 +1,69 @@
+name: Deploy API
+
+# Builds the Nest image, pushes it to Artifact Registry and rolls a new Cloud Run
+# revision. No long-lived key: GitHub's OIDC token is exchanged for the deploy service
+# account through Workload Identity Federation. `scripts/provision.sh` creates every
+# resource named here and sets every secret and variable it reads.
+#
+# The API applies pending Drizzle migrations on boot (apps/api/src/db/db.ts), so a
+# deploy is nothing but a new revision.
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-api
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  # Required to mint the OIDC token google-github-actions/auth exchanges.
+  id-token: write
+
+jobs:
+  deploy:
+    name: Cloud Run
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPOSITORY }}/api:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Build and push image
+        run: |
+          gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+          docker build -f apps/api/Dockerfile -t "$IMAGE" .
+          docker push "$IMAGE"
+        env:
+          GCP_REGION: ${{ vars.GCP_REGION }}
+
+      # Every value below reaches the revision as a plain environment variable, so the
+      # secrets are readable by anyone with `run.services.get` on the GCP project. That
+      # is the single-owner trade the Kit takes for one fewer service to provision; move
+      # the four secret rows to the action's `secrets:` input backed by Secret Manager
+      # when a Project grows a second person.
+      - uses: google-github-actions/deploy-cloudrun@v3
+        with:
+          service: ${{ vars.CLOUD_RUN_SERVICE }}
+          region: ${{ vars.GCP_REGION }}
+          image: ${{ env.IMAGE }}
+          env_vars_update_strategy: overwrite
+          env_vars: |-
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            AUTH_SECRET=${{ secrets.AUTH_SECRET }}
+            SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+            RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+            GOOGLE_GENERATIVE_AI_API_KEY=${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
+            API_URL=${{ vars.API_URL }}
+            WEB_URL=${{ vars.WEB_URL }}
+            EMAIL_TRANSPORT=${{ vars.EMAIL_TRANSPORT }}
+            LLM_PROVIDER=${{ vars.LLM_PROVIDER }}
