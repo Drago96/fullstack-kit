@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Scaffold, end to end. Run: bash scripts/scaffold/scaffold.test.sh
 #
-# Origin has no `reference` branch yet, so the test builds one from this checkout the same
-# way publish-reference.yml does (`git subtree split --prefix=reference`), pushes it into a
-# throwaway bare repo, and points Scaffold at that with --kit. --no-github keeps the run
-# tokenless, so this is the same test locally and in Kit CI.
+# Origin has had a `reference` branch since 2026-09-05, but CI is proving this PR's own
+# tree, not what's already published, so the test still builds one from this checkout the
+# same way publish-reference.yml does (`git subtree split --prefix=reference`), pushes it
+# into a throwaway bare repo, and points Scaffold at that with --kit. --no-github keeps the
+# run tokenless, so this is the same test locally and in Kit CI.
 #
 # SCAFFOLD_TEST_TASK_GRAPH=1 additionally installs the scaffolded Project from its lockfile
 # and runs its task graph. Kit CI sets it; it takes minutes and wants API_URL set.
@@ -65,6 +66,11 @@ holds "the root package is renamed" "$acme/package.json" '"name": "acme"'
 holds "the turbo task id is renamed" "$acme/turbo.json" '"@acme/api-client#build"'
 holds "the lockfile names the renamed workspaces" "$acme/pnpm-lock.yaml" "'@acme/contract':"
 holds "the deep-link scheme is renamed" "$acme/apps/api/.env.example" "MOBILE_URL=acme://"
+
+# ── The Project's own display name ────────────────────────────────────────────
+holds "the app title carries the Project's name" "$acme/packages/messages/src/en.json" '"title": "Acme"'
+lacks "en.json no longer says Reference Project" "$acme/packages/messages/src/en.json" "Reference Project"
+lacks "env.ts no longer says Reference" "$acme/apps/api/src/env.ts" "Reference <"
 
 # ── Mobile is off by default, and comes out whole ─────────────────────────────
 absent "the mobile workspace is stripped" "$acme/apps/mobile"

@@ -52,8 +52,9 @@ git remote rename origin kit
 git branch --move main
 
 # ── Rename the Reference Project's identifiers ────────────────────────────────
-# Identifiers only. Display copy — the app title in packages/messages, EMAIL_FROM — is
-# yours to write; nothing but a human knows what the Project is called out loud.
+# Identifiers, plus a starter display name derived from <name>. The exact wording — the
+# app title in packages/messages, EMAIL_FROM — is yours to refine; nothing but a human
+# knows what the Project should say out loud.
 unbak() { find . -name '*.scaffold-bak' -not -path './.git/*' -delete; }
 rewrite() { # rewrite <from> <to>: in every tracked text file that mentions <from>
   { grep -rlI --exclude-dir=.git -e "$1" . || true; } \
@@ -70,6 +71,16 @@ if [ "$mobile" = true ]; then
   sed -i.scaffold-bak "s|'reference'|'$name'|g" apps/mobile/src/auth-client.ts
 fi
 unbak
+
+# ── The Project's own display name ────────────────────────────────────────────
+# <name> with its first letter upper-cased and -/_ turned to spaces: acme-notes becomes
+# "Acme notes". Only the app title and EMAIL_FROM's display name; everything else about
+# how the Project introduces itself stays yours to refine.
+display=$(echo "$name" | awk '{gsub(/[-_]/, " "); print toupper(substr($0, 1, 1)) substr($0, 2)}')
+for f in packages/messages/src/*.json; do
+  sed -i.scaffold-bak '/"app": {/,/}/ s/"title": ".*"/"title": "'"$display"'"/' "$f"
+done
+rewrite 'Reference <onboarding@resend.dev>' "$display <onboarding@resend.dev>"
 
 # ── Mobile is opt-in ──────────────────────────────────────────────────────────
 if [ "$mobile" = false ]; then
