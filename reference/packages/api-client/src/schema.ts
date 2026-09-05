@@ -4,6 +4,22 @@
  */
 
 export interface paths {
+    "/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminController_users"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ask": {
         parameters: {
             query?: never;
@@ -56,6 +72,16 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AuthFailureDto: {
+            statusCode: number;
+            message: string;
+        };
+        AdminUserListDto_Output: {
+            id: string;
+            /** Format: email */
+            email: string;
+            role: string;
+        }[];
         AskDto: {
             prompt: string;
         };
@@ -102,6 +128,41 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    AdminController_users: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserListDto_Output"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthFailureDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthFailureDto"];
+                };
+            };
+        };
+    };
     AskController_ask: {
         parameters: {
             query?: never;
@@ -163,6 +224,14 @@ export interface operations {
                     "application/json": components["schemas"]["NoteListDto_Output"];
                 };
             };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthFailureDto"];
+                };
+            };
         };
     };
     NotesController_create: {
@@ -192,6 +261,14 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ValidationFailureDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthFailureDto"];
                 };
             };
         };

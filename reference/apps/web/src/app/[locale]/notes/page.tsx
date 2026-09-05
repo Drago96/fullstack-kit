@@ -8,13 +8,33 @@ import { useTranslations } from 'next-intl';
 import createQueryHooks from 'openapi-react-query';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { authClient } from '@/auth-client';
+import { failureCode, useErrorCodes } from '@/i18n/error-codes';
+import { Link } from '@/i18n/navigation';
 
-// '/api' is the same-origin proxy declared in next.config.ts.
+// '/api' is the same-origin proxy declared in next.config.ts, so the session cookie
+// travels with every request.
 const api = createQueryHooks(createApiClient('/api'));
 const noteListKey = ['get', '/notes'];
 
 export default function NotesPage() {
   const [queryClient] = useState(() => new QueryClient());
+  const t = useTranslations('notes');
+  const { data: session, isPending } = authClient.useSession();
+
+  if (isPending) return null;
+  // Notes belong to their owner, so there is nothing to show a visitor without a session.
+  if (!session) {
+    return (
+      <main>
+        <h1>{t('heading')}</h1>
+        <p>
+          <Link href="/login">{t('signInToSee')}</Link>
+        </p>
+      </main>
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <Notes />
@@ -24,7 +44,7 @@ export default function NotesPage() {
 
 function Notes() {
   const t = useTranslations('notes');
-  const tErrors = useTranslations('errors');
+  const translate = useErrorCodes();
   const queryClient = useQueryClient();
   const notes = api.useQuery('get', '/notes');
   const createNote = api.useMutation('post', '/notes', {
@@ -34,10 +54,6 @@ function Notes() {
     resolver: zodResolver(createNoteSchema),
     defaultValues: { title: '', body: '' },
   });
-
-  // Both the resolver and the API's 400 report the Contract's error codes.
-  const translateCode = (code: string | undefined) =>
-    code !== undefined && tErrors.has(code) ? tErrors(code) : tErrors('unknown');
 
   const submit = handleSubmit((note) => {
     createNote.mutate({ body: note }, { onSuccess: () => reset() });
@@ -51,7 +67,7 @@ function Notes() {
           <label htmlFor="title">{t('title')}</label>
           <input id="title" {...register('title')} />
           {formState.errors.title ? (
-            <span role="alert">{translateCode(formState.errors.title.message)}</span>
+            <span role="alert">{translate(formState.errors.title.message)}</span>
           ) : null}
         </p>
         <p>
@@ -62,9 +78,7 @@ function Notes() {
           {t('add')}
         </button>
       </form>
-      {createNote.error ? (
-        <p role="alert">{translateCode(createNote.error.errors[0]?.message)}</p>
-      ) : null}
+      {createNote.error ? <p role="alert">{translate(failureCode(createNote.error))}</p> : null}
       <p>{t('count', { count: notes.data?.length ?? 0 })}</p>
       <ul>
         {notes.data?.map((note) => (

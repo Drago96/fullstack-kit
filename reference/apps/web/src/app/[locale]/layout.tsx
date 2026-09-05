@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
+import { AuthNav } from '@/components/auth-nav';
 import { LocaleSwitcher } from '@/components/locale-switcher';
 import { routing } from '@/i18n/routing';
 
@@ -25,6 +26,7 @@ export default async function LocaleLayout({
       <body>
         <NextIntlClientProvider>
           <LocaleSwitcher />
+          <AuthNav />
           {children}
         </NextIntlClientProvider>
       </body>
