@@ -54,6 +54,10 @@ _Avoid_: Self-learning loop, auto-improve
 The Loop in every Project that merges the Kit's latest Reference Project into the Project as a pull request.
 _Avoid_: Update, upgrade, pull from kit
 
+**Error Loop**:
+The Loop in every Project that turns an unresolved Sentry issue into a pull request carrying a fix and a regression test, or into a `needs-info` issue when it cannot reproduce it.
+_Avoid_: Error bot, Sentry loop, auto-fix, self-healing
+
 **Review Loop**:
 The Loop that reviews every pull request against Stack Rules and its linked issue, fixes what it can, and merges when CI and the review are green. Hands a PR to a human only when it cannot get it green.
 _Avoid_: Auto-merge bot, PR bot, code review action

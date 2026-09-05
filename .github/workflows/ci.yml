@@ -37,6 +37,7 @@ jobs:
         run: |
           bash scripts/review-loop/decide.test.sh
           bash scripts/kit-loop/pick.test.sh
+          bash scripts/error-loop/pick.test.sh
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: reference/package.json

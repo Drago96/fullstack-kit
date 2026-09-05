@@ -12,6 +12,7 @@ A Claude Code plugin holding the Skills, Workflows and Loops for building and ru
 ## Skills
 
 - `kit-loop` — the headless implement procedure the Kit Loop runs: read a triaged issue's brief, implement it test-first on its own branch, open a PR. Not for interactive use.
+- `error-loop` — the headless procedure the Error Loop runs: reproduce an unresolved Sentry issue with a failing test at the seam, fix it, open one PR per Sentry issue. Not for interactive use.
 - `harvest` — from any Project session, "harvest this" files a Lesson as a `needs-triage` issue on this repo (What happened / Kit part / Proposed change / Source). The Kit's implement, review and debugging skills, once they exist, will fire its phase-boundary prompt ("anything here belongs in the Kit?").
 
 ## Composed plugins
@@ -48,3 +49,9 @@ Every two hours `.github/workflows/kit-loop.yml` picks the lowest-numbered open 
 ## Review Loop
 
 Every non-draft PR is reviewed headless by the `review-loop` skill (`.github/workflows/review-loop.yml`) against `STACK-RULES.md` and its linked issue, fixed up to twice, and auto-merged when CI and the review are green (ADR 0008). One-time setup per repo: set the `CLAUDE_CODE_OAUTH_TOKEN` secret (`claude setup-token`), `REVIEW_LOOP_GH_TOKEN` (fine-grained PAT with contents, pull-requests and workflows write; without it fix commits do not re-trigger CI, so fix rounds need a manual re-run, and on the Kit the `reference` branch cannot be published because it carries workflow files), then run `bash scripts/review-loop/setup-repo.sh <owner/repo> master "<your CI job name>" "Review Loop"` (the Kit itself uses the defaults). Projects call the Kit's workflow as a reusable workflow, so the skill and Stack Rules always come from the Kit's `master`.
+
+## Error Loop
+
+Every six hours a Project's `.github/workflows/error-loop.yml` calls the Kit's reusable `error-loop.yml`, which runs the `error-loop` skill over the unresolved Sentry issues of `SENTRY_ORG/SENTRY_PROJECT`. Sentry issues already named by an open PR or open issue are skipped, and at most three are handled per run, most events first. For each: reproduce with a failing API Test (or E2E Test for browser errors), fix, prove the test fails without the fix (`git stash`), and open one PR on `error-<short-id>` labelled `ready-for-human` and linking the Sentry issue. When it cannot reproduce one, it files a `needs-info` issue with the Sentry link and what it tried instead. It never merges and never touches Sentry (ADR 0004). `workflow_dispatch` runs it on demand. Run `bash scripts/error-loop/pick.sh` (with the Sentry variables set) to see what the next run would pick.
+
+Secrets, per Project: `SENTRY_AUTH_TOKEN` (a Sentry auth token with `event:read` and `project:read`), `SENTRY_ORG` and `SENTRY_PROJECT` (the slugs from the Sentry project's URL), plus the same `CLAUDE_CODE_OAUTH_TOKEN` and `REVIEW_LOOP_GH_TOKEN` the other Loops use. The Reference Project's `SENTRY_DSN` is what puts errors into Sentry in the first place; without it the Loop finds nothing.
