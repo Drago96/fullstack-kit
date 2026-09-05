@@ -52,6 +52,11 @@ jobs:
       # creates each secret and grants that account roles/secretmanager.secretAccessor;
       # this deploy account only attaches them (roles/run.admin plus
       # roles/iam.serviceAccountUser on the runtime account) and cannot read them.
+      #
+      # MOBILE_URL (absent without the mobile app) and EMAIL_FROM (defaulted in env.ts)
+      # are optional, and an unset variable would otherwise send `KEY=`, which fails the
+      # boot validation. So each is a whole row that collapses to a blank line the
+      # action skips when its variable is empty.
       - uses: google-github-actions/deploy-cloudrun@v3
         with:
           service: ${{ vars.CLOUD_RUN_SERVICE }}
@@ -63,6 +68,8 @@ jobs:
             WEB_URL=${{ vars.WEB_URL }}
             EMAIL_TRANSPORT=${{ vars.EMAIL_TRANSPORT }}
             LLM_PROVIDER=${{ vars.LLM_PROVIDER }}
+            ${{ vars.MOBILE_URL && format('MOBILE_URL={0}', vars.MOBILE_URL) || '' }}
+            ${{ vars.EMAIL_FROM && format('EMAIL_FROM={0}', vars.EMAIL_FROM) || '' }}
           secrets_update_strategy: overwrite
           secrets: |-
             DATABASE_URL=DATABASE_URL:latest
