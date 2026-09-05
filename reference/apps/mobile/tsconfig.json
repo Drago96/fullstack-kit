@@ -1,10 +1,6 @@
 {
-  "//": "strict flags below copied from ../../tsconfig.base.json - a tsconfig can only extend one file, and this one already extends expo/tsconfig.base",
-  "extends": "expo/tsconfig.base",
+  "extends": ["../../tsconfig.base.json", "expo/tsconfig.base"],
   "compilerOptions": {
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
     "paths": {
       "@/*": ["./src/*"]
     }
