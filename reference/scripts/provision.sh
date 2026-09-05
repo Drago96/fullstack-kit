@@ -402,6 +402,10 @@ set_gcp_secret AUTH_SECRET "$(openssl rand -hex 32)"
 say "AUTH_SECRET generated and stored. Rotating it logs everyone out."
 set_var EMAIL_TRANSPORT resend
 set_var LLM_PROVIDER google
+say "The mobile app's deep-link scheme is a trusted origin for its auth requests."
+ask MOBILE_URL "Mobile deep-link scheme, e.g. $SLUG:// (Enter for none):"
+# Empty is the Project generated without mobile: deploy-api.yml then omits the row.
+set_var MOBILE_URL "$MOBILE_URL"
 pause
 
 # ── 8 ─────────────────────────────────────────────────────────────────────
@@ -442,6 +446,9 @@ open_url "https://resend.com/api-keys"
 step "Create an API key with send access, then copy it."
 ask_secret RESEND_API_KEY "Paste the Resend API key:"
 set_gcp_secret RESEND_API_KEY "$RESEND_API_KEY"
+ask EMAIL_FROM "Sender of every message [$SLUG <onboarding@resend.dev>]:"
+EMAIL_FROM=${EMAIL_FROM:-"$SLUG <onboarding@resend.dev>"}
+set_var EMAIL_FROM "$EMAIL_FROM"
 pause
 
 record gcp_secrets "${GCP_SECRETS[*]}"

@@ -32,12 +32,13 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v4
-      - name: Loop scripts
+      - name: Script tests
         working-directory: .
         run: |
           bash scripts/review-loop/decide.test.sh
           bash scripts/kit-loop/pick.test.sh
           bash scripts/error-loop/pick.test.sh
+          bash scripts/deploy-env.test.sh
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: reference/package.json
