@@ -10,9 +10,14 @@ export function LocaleSwitcher() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label={t('language')}>
+    <nav aria-label={t('language')} className="flex items-center gap-3 text-sm">
       {locales.map((locale) => (
-        <Link key={locale} href={pathname} locale={locale}>
+        <Link
+          key={locale}
+          href={pathname}
+          locale={locale}
+          className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+        >
           {t(locale)}
         </Link>
       ))}
