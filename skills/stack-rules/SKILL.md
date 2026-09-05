@@ -30,9 +30,13 @@ A client component under `apps/web/src/app/[locale]/<route>/page.tsx`, as in `no
 - Render errors through `useErrorCodes()` (`apps/web/src/i18n/error-codes.ts`): `translate(formState.errors.title?.message)` for the client-side failure, `translate(failureCode(mutation.error))` for the server's.
 - Every visible string comes from `useTranslations`, and every field gets a `<label htmlFor>` — the E2E Tests locate by label and role.
 
+Mobile forms are the same react-hook-form and the same Contract schema through `zodResolver`; only the field binding differs, since `TextInput` is uncontrolled-unfriendly: wrap each one in react-hook-form's `Controller` (`apps/mobile/src/app/index.tsx`) instead of `register`.
+
 ## Add a translated string
 
 Add the key to `packages/messages/src/en.json` **and** every other locale file (`bg.json`). `packages/messages/src/index.ts` types the map against `en`, so a missing translation fails typecheck rather than shipping a blank. Contract error codes live under `errors.<code>`. `apps/web/e2e/i18n.spec.ts` is the test that a page really translates.
+
+Mobile reads those same ICU files: `apps/mobile/src/app/_layout.tsx` wraps the app in `use-intl`'s `IntlProvider`, with the locale from `expo-localization` and the messages from `@reference/messages`. One key added to the locale files reaches both clients; there is no second copy of a string anywhere.
 
 ## Add an LLM call
 

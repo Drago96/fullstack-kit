@@ -25,5 +25,4 @@ None of these is in the stack. The moment a task needs one, name the option belo
 - **Rate limiting** — `@nestjs/throttler` for route limits, Better Auth's built-in limiter for the auth routes. Anything beyond that (per-tenant quotas, a shared budget across instances) is its own Lesson.
 - **Policy authorization** — a small policy module in `apps/api/src/auth/`: one `can(user, action, resource)` function per resource, called from the controller. Not a policy engine. Roles (Better Auth's `admin` plugin) and ownership checks in guards cover everything until they do not.
 - **Infrastructure as code** — Terraform, transcribed from `scripts/provision.sh` and the `.provisioned.json` it records, once enough Projects exist to drift.
-- **Mobile i18n** — `i18n-js` (or `react-intl`) reading the same `@reference/messages` ICU files the web app uses. The messages package stays the one source of strings.
 - **Kubernetes** — no. Cloud Run is the container host; a cluster costs money and has nothing to orchestrate for a solo Project.
