@@ -34,9 +34,10 @@ pnpm install
 pnpm turbo run build
 pnpm --filter api start      # http://localhost:3001/hello, OpenAPI at /docs
 pnpm --filter web start      # http://localhost:3000
+pnpm --filter mobile start   # Expo dev server
 ```
 
-Workspaces: `apps/api` (NestJS), `apps/web` (Next.js App Router), `packages/contract` (Zod schemas, the source of truth), `packages/api-client` (typed client generated from the OpenAPI spec Nest derives from the Contract), `packages/messages` (ICU messages, one file per locale).
+Workspaces: `apps/api` (NestJS), `apps/web` (Next.js App Router), `apps/mobile` (Expo Router, opt-in), `packages/contract` (Zod schemas, the source of truth), `packages/api-client` (typed client generated from the OpenAPI spec Nest derives from the Contract), `packages/messages` (ICU messages, one file per locale).
 
 Adding an endpoint: schema in `packages/contract` → controller in `apps/api` → `pnpm turbo run generate` → commit the regenerated `packages/api-client`. CI fails on drift.
 

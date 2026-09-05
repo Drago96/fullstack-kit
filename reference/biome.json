@@ -5,6 +5,7 @@
       "**",
       "!**/dist",
       "!**/.next",
+      "!**/.expo",
       "!**/node_modules",
       "!**/.turbo",
       "!apps/web/next-env.d.ts",

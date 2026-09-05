@@ -1,3 +1,4 @@
+import { expo } from '@better-auth/expo';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { admin } from 'better-auth/plugins';
@@ -7,14 +8,15 @@ import { sendEmail } from '../email/email';
 import { env } from '../env';
 
 function createAuth() {
-  const { API_URL, WEB_URL, AUTH_SECRET } = env();
+  const { API_URL, WEB_URL, MOBILE_URL, AUTH_SECRET } = env();
   return betterAuth({
     baseURL: API_URL,
     // The web app proxies /api/* to this API, so the browser reaches these routes
     // same-origin at /api/auth/* and the session cookie stays first-party.
     basePath: '/auth',
     secret: AUTH_SECRET,
-    trustedOrigins: [WEB_URL],
+    // MOBILE_URL is the app's deep-link scheme, and is unset in a Project without mobile.
+    trustedOrigins: MOBILE_URL ? [WEB_URL, MOBILE_URL] : [WEB_URL],
     database: drizzleAdapter(db(), { provider: 'pg', schema }),
     emailAndPassword: {
       enabled: true,
@@ -27,8 +29,10 @@ function createAuth() {
       sendVerificationEmail: ({ user, url }) =>
         sendEmail({ to: user.email, subject: 'Verify your email', url }),
     },
-    // Gives every user a `role`, which src/auth/session.ts turns into a Nest guard.
-    plugins: [admin()],
+    // admin() gives every user a `role`, which src/auth/session.ts turns into a Nest guard.
+    // expo() promotes the `expo-origin` header the mobile client sends to `origin`, because
+    // a device sends none of its own and the origin check would otherwise refuse it.
+    plugins: [admin(), expo()],
   });
 }
 
