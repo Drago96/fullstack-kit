@@ -16,6 +16,9 @@ const envSchema = z
     // Public base URL of the web app: the trusted origin for auth requests, and where
     // the links in verification and password-reset emails send the visitor back to.
     WEB_URL: z.url(),
+    // Deep-link scheme of the mobile app, `reference://`, which is the origin its auth
+    // requests carry. Absent in a Project generated without mobile.
+    MOBILE_URL: z.string().min(1).optional(),
     // Signs sessions and verification tokens. Rotating it logs everyone out.
     AUTH_SECRET: z.string().min(32),
     // capture keeps messages in memory for the tests to read instead of sending them.

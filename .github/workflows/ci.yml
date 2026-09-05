@@ -63,6 +63,17 @@ jobs:
         run: pnpm turbo run e2e
       - name: Docker build
         run: docker build -f apps/api/Dockerfile .
+      # The mobile app is opt-in, so a Project generated without it has to stay green.
+      # Deleting the workspace for real is the only honest proof, and it is cheap: the
+      # install is the only work that is not a Turborepo cache hit. Last step in the job,
+      # because it leaves the checkout and the lockfile without the mobile workspace.
+      - name: Reference Project stays green with the mobile app removed
+        run: |
+          rm -rf apps/mobile
+          pnpm install --no-frozen-lockfile
+          pnpm biome ci .
+          pnpm knip
+          pnpm turbo run typecheck build test
 
   actionlint:
     name: Workflow lint
