@@ -118,7 +118,9 @@ ask() {
   current=$(_existing "$key" || true)
   while :; do
     _prompt "$prompt" "$current" "$default"
-    read -r input || true
+    # -e: readline handles the line, so backspacing over a non-ASCII character removes the
+    # whole character; the terminal's own editing may remove one byte and keep the rest.
+    read -re input || true
     [[ -z "$input" ]] && input="${current:-$default}"
     [[ -n "$input" || "$optional" -eq 1 ]] && break
     warn "a value is required"
