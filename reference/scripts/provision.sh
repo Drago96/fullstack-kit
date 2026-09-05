@@ -302,10 +302,16 @@ pause
 
 # ── 3 ─────────────────────────────────────────────────────────────────────
 stage "Google Cloud: project, APIs, Artifact Registry"
-ask GCP_PROJECT_ID "Google Cloud project id:" "$SLUG-prod"
+# Project ids are unique across all of Google Cloud, and a deleted project keeps its id for
+# 30 days, so the suggested id can be taken. Ask until one is ours or newly created.
+while :; do
+  ask GCP_PROJECT_ID "Google Cloud project id:" "$SLUG-prod"
+  if gcloud projects describe "$GCP_PROJECT_ID" >/dev/null 2>&1; then say "reusing project $GCP_PROJECT_ID"; break; fi
+  if gcloud projects create "$GCP_PROJECT_ID"; then break; fi
+  warn "'$GCP_PROJECT_ID' is taken (or belongs to another account); pick another id"
+done
+write_env GCP_PROJECT_ID "$GCP_PROJECT_ID"
 ask GCP_REGION "Cloud Run region:" europe-west1
-gcloud projects describe "$GCP_PROJECT_ID" >/dev/null 2>&1 ||
-  gcloud projects create "$GCP_PROJECT_ID"
 open_url "https://console.cloud.google.com/billing/linkedaccount?project=$GCP_PROJECT_ID"
 step "Signed in as $ACCOUNT_EMAIL, link a billing account — Cloud Run's free tier still requires one."
 pause "Enter once billing is linked."
