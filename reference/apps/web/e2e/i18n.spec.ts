@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { signedIn } from './sign-up';
 
 test('an unprefixed path lands on the default locale', async ({ page }) => {
   await page.goto('/notes');
@@ -8,8 +9,9 @@ test('an unprefixed path lands on the default locale', async ({ page }) => {
 
 test('the switcher translates the page, headings and validation errors included', async ({
   page,
+  request,
 }) => {
-  await page.goto('/en/notes');
+  await signedIn(page, request);
   await page.getByRole('link', { name: 'Български' }).click();
 
   await expect(page).toHaveURL('/bg/notes');

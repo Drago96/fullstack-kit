@@ -3,7 +3,9 @@ import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { LoggerModule } from 'nestjs-pino';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
+import { AdminController } from './admin/admin.controller';
 import { AskController } from './ask/ask.controller';
+import { EmailController } from './email/email.controller';
 import { HelloController } from './hello/hello.controller';
 import { NotesController } from './notes/notes.controller';
 import { SentryController } from './sentry/sentry.controller';
@@ -19,7 +21,14 @@ import { SentryController } from './sentry/sentry.controller';
       pinoHttp: { level: process.env.LOG_LEVEL ?? 'info' },
     }),
   ],
-  controllers: [AskController, HelloController, NotesController, SentryController],
+  controllers: [
+    AdminController,
+    AskController,
+    EmailController,
+    HelloController,
+    NotesController,
+    SentryController,
+  ],
   providers: [
     { provide: APP_FILTER, useClass: SentryGlobalFilter },
     { provide: APP_PIPE, useClass: ZodValidationPipe },

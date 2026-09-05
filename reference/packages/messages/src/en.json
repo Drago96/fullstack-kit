@@ -7,7 +7,11 @@
     "notes": "Notes",
     "language": "Language",
     "en": "English",
-    "bg": "Български"
+    "bg": "Български",
+    "account": "Account",
+    "logIn": "Log in",
+    "signUp": "Sign up",
+    "signOut": "Sign out"
   },
   "home": {
     "apiNote": "This greeting comes from the API."
@@ -17,13 +21,46 @@
     "title": "Title",
     "body": "Body",
     "add": "Add note",
-    "count": "{count, plural, =0 {No notes yet} one {# note} other {# notes}}"
+    "count": "{count, plural, =0 {No notes yet} one {# note} other {# notes}}",
+    "signInToSee": "Log in to see your notes"
+  },
+  "auth": {
+    "signUp": "Sign up",
+    "logIn": "Log in",
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "checkEmail": "Check your email",
+    "checkEmailBody": "We sent you a link. Follow it to verify your address.",
+    "resetLinkSent": "We sent you a link to choose a new password.",
+    "verified": "Your email is verified",
+    "forgotPassword": "Forgot your password?",
+    "sendResetLink": "Send reset link",
+    "newPassword": "New password",
+    "setNewPassword": "Set new password"
   },
   "errors": {
     "note": {
       "title": {
         "required": "Title is required",
         "tooLong": "Title must be at most 200 characters"
+      }
+    },
+    "auth": {
+      "required": "Log in to continue",
+      "forbidden": "You are not allowed to do that",
+      "notVerified": "Verify your email address first",
+      "signUpFailed": "That account could not be created",
+      "signInFailed": "Wrong email or password",
+      "resetFailed": "That reset link is no longer valid",
+      "email": {
+        "invalid": "Enter a valid email address"
+      },
+      "password": {
+        "tooShort": "Password must be at least 8 characters"
+      },
+      "name": {
+        "required": "Name is required"
       }
     },
     "unknown": "Something went wrong"
