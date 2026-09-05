@@ -52,7 +52,7 @@ There is no job runner (see the absent list). A job is a Nest endpoint that Clou
 
 ## Before you push
 
-What CI runs, from `reference/`: `pnpm biome ci .`, `pnpm knip`, `pnpm turbo run typecheck build test api-test`, `pnpm turbo run generate` with a clean `git diff`, `pnpm turbo run e2e`, and `docker build -f apps/api/Dockerfile .`.
+What CI runs, from `reference/`: `pnpm biome ci .`, `pnpm knip`, `pnpm turbo run typecheck build test api-test`, `pnpm turbo run generate` with a clean `git diff`, `pnpm turbo run e2e`, and `docker build -f apps/api/Dockerfile .`. Then, because the mobile app is opt-in and a Project generated without it has to stay green, it deletes `apps/mobile`, reinstalls, and re-runs `biome ci .`, `knip` and `turbo run typecheck build test`.
 
 ## Test naming
 
@@ -78,4 +78,4 @@ The Sync Loop copies every such line from the incoming commits into the PR it op
 
 ## When the stack does not have it
 
-`STACK-RULES.md`'s absent list names the intended option for background jobs, file storage, feature flags, analytics, rate limiting, policy authorization, infrastructure as code and mobile i18n. The moment a task needs one, name that option, say what it would cost, and stop. Adopting it is a Lesson to `harvest`, not a decision to make mid-ticket.
+`STACK-RULES.md`'s absent list names the intended option for background jobs, file storage, feature flags, analytics, rate limiting, policy authorization, infrastructure as code and Kubernetes. The moment a task needs one, name that option, say what it would cost, and stop. Adopting it is a Lesson to `harvest`, not a decision to make mid-ticket.
