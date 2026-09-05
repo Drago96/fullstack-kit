@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
+// Validation messages are stable error codes, not prose: both the API's 400 body and the
+// form resolver surface them, and the web app translates them under `errors.<code>`.
 export const createNoteSchema = z.object({
-  title: z.string().min(1).max(200),
+  title: z.string().min(1, 'note.title.required').max(200, 'note.title.tooLong'),
   body: z.string(),
 });
 

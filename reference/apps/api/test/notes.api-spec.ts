@@ -43,9 +43,11 @@ describe('/notes', () => {
     expect(notes.map((note) => note.title)).toEqual(['Newer', 'Older']);
   });
 
-  it('rejects an empty title with 400', async () => {
+  it('rejects an empty title with 400 and the error code the web app translates', async () => {
     const res = await postNote({ title: '', body: 'Hello' });
     expect(res.status).toBe(400);
+    const failure: { errors: { message: string }[] } = await res.json();
+    expect(failure.errors.map((issue) => issue.message)).toEqual(['note.title.required']);
     expect(await countRows()).toBe(0);
   });
 });
