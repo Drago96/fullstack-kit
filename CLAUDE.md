@@ -28,7 +28,7 @@ gh auth switch -u Drago96 && gh issue list --label ready-for-agent --state open 
         | "#\(.number) \(.title)"'
 ```
 
-Order of work: #2 first, then #16 (Review Loop, ADR 0008), then #7 (Kit Loop), so the remaining tickets can be implemented and merged by `/kit-loop` and `/review-loop` runs you start yourself (ADR 0009). After each `/implement`, `/clear` before the next.
+Take them lowest number first; a ticket can also be implemented and merged by `/kit-loop` and `/review-loop` runs you start yourself (ADR 0009). After each `/implement`, `/clear` before the next.
 
 ## Every change lands via a pull request
 

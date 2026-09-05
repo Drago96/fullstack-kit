@@ -52,7 +52,7 @@ There is no job runner (see the absent list). A job is a Nest endpoint that Clou
 
 ## Before you push
 
-What CI runs, from `reference/`: `pnpm biome ci .`, `pnpm knip`, `pnpm turbo run typecheck build test api-test`, `pnpm turbo run generate` with a clean `git diff`, `pnpm turbo run e2e`, and `docker build -f apps/api/Dockerfile .`.
+What CI runs, from `reference/`: `pnpm biome ci .`, `pnpm knip`, `pnpm turbo run typecheck build test api-test`, `pnpm turbo run generate` with a clean `git diff`, `pnpm turbo run e2e`, and `docker build -f apps/api/Dockerfile .`. Then, because the mobile app is opt-in and a Project generated without it has to stay green, it deletes `apps/mobile`, reinstalls, and re-runs `biome ci .`, `knip` and `turbo run typecheck build test`.
 
 ## Test naming
 
