@@ -257,12 +257,25 @@ REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
 SLUG=${REPO##*/}
 say "GitHub repository: $REPO"
 record repository "$REPO"
+# One personal account owns every vendor below; a work account must never slip in. gcloud is
+# the one CLI that silently uses whatever account is active, so it is pinned for the rest
+# of this run through CLOUDSDK_CORE_ACCOUNT, which leaves your global gcloud config alone.
+ask ACCOUNT_EMAIL "Personal account email for every vendor (Google, Neon, Vercel, Sentry, Resend):"
+[[ -n "$ACCOUNT_EMAIL" ]] || fail "an account email is required"
+write_env ACCOUNT_EMAIL "$ACCOUNT_EMAIL"
+export CLOUDSDK_CORE_ACCOUNT="$ACCOUNT_EMAIL"
+gcloud auth list --filter="account:$ACCOUNT_EMAIL" --format='value(account)' 2>/dev/null | grep -qx "$ACCOUNT_EMAIL" ||
+  gcloud auth login "$ACCOUNT_EMAIL" --no-activate
+say "gcloud runs as $ACCOUNT_EMAIL for this run only; your active gcloud account is untouched."
 pause "Provisioning $SLUG. Enter to continue."
 
 # ── 2 ─────────────────────────────────────────────────────────────────────
 stage "Neon: Postgres"
 say "Creating the Project's database. A project of this name is reused, not replaced."
-neonctl auth >/dev/null 2>&1 || pause "A browser opened for Neon login. Enter when done."
+neonctl auth >/dev/null 2>&1 || pause "A browser opened for Neon login as $ACCOUNT_EMAIL. Enter when done."
+neon_me=$(neonctl me --output json 2>/dev/null | jq -r '.email // empty')
+[[ "$neon_me" == "$ACCOUNT_EMAIL" ]] ||
+  fail "neonctl is logged in as '${neon_me:-nobody}', not $ACCOUNT_EMAIL — run 'neonctl auth' with the personal account"
 # An account in an organization gets an interactive "which organization?" menu from every
 # neonctl command that lacks --org-id, and the menu text is not JSON. Pick the first org
 # once; a personal account has none and the flag stays empty.
@@ -289,7 +302,7 @@ GCP_REGION=${GCP_REGION:-europe-west1}
 gcloud projects describe "$GCP_PROJECT_ID" >/dev/null 2>&1 ||
   gcloud projects create "$GCP_PROJECT_ID"
 open_url "https://console.cloud.google.com/billing/linkedaccount?project=$GCP_PROJECT_ID"
-step "Link a billing account — Cloud Run's free tier still requires one."
+step "Signed in as $ACCOUNT_EMAIL, link a billing account — Cloud Run's free tier still requires one."
 pause "Enter once billing is linked."
 gcloud services enable run.googleapis.com artifactregistry.googleapis.com \
   iamcredentials.googleapis.com sts.googleapis.com secretmanager.googleapis.com \
@@ -380,6 +393,7 @@ pause
 # ── 6 ─────────────────────────────────────────────────────────────────────
 stage "Vercel: web project"
 say "Linking the repo to a Vercel project. Hobby forbids commercial use (ADR 0002)."
+vercel whoami >/dev/null 2>&1 || { say "Log in to Vercel as $ACCOUNT_EMAIL."; vercel login "$ACCOUNT_EMAIL"; }
 vercel link --yes --project "$SLUG"
 VERCEL_ORG_ID=$(jq -r .orgId .vercel/project.json)
 VERCEL_PROJECT_ID=$(jq -r .projectId .vercel/project.json)
@@ -420,7 +434,7 @@ pause
 stage "Sentry: error tracking"
 say "Sentry has no CLI for creating a project or reading its DSN, so this one is manual."
 open_url "https://sentry.io/organizations/new/"
-step "Create or open an organization, then two projects: '$SLUG-api' (Node) and"
+step "Signed in as $ACCOUNT_EMAIL, create or open an organization, then two projects: '$SLUG-api' (Node) and"
 step "'$SLUG-web' (Next.js). Each shows its DSN on the setup page."
 ask_secret SENTRY_DSN "Paste the API project DSN:"
 ask_secret NEXT_PUBLIC_SENTRY_DSN "Paste the web project DSN:"
@@ -442,7 +456,7 @@ pause
 stage "Google AI Studio: Gemini key"
 say "POST /ask runs on Gemini Flash, whose free tier costs nothing (ADR 0002)."
 open_url "https://aistudio.google.com/apikey"
-step "Create an API key, then copy it."
+step "Signed in as $ACCOUNT_EMAIL, create an API key, then copy it."
 ask_secret GOOGLE_GENERATIVE_AI_API_KEY "Paste the Gemini API key:"
 set_gcp_secret GOOGLE_GENERATIVE_AI_API_KEY "$GOOGLE_GENERATIVE_AI_API_KEY"
 pause
@@ -451,7 +465,7 @@ pause
 stage "Resend: auth email"
 say "Verification and password-reset messages go out through Resend."
 open_url "https://resend.com/api-keys"
-step "Create an API key with send access, then copy it."
+step "Signed in as $ACCOUNT_EMAIL, create an API key with send access, then copy it."
 ask_secret RESEND_API_KEY "Paste the Resend API key:"
 set_gcp_secret RESEND_API_KEY "$RESEND_API_KEY"
 ask EMAIL_FROM "Sender of every message [$SLUG <onboarding@resend.dev>]:"
