@@ -28,7 +28,8 @@ export default async function startApi(project: TestProject) {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error('DATABASE_URL is required to run the API tests');
   const child = spawn('node', ['dist/main.js'], {
-    env: { ...process.env, PORT: String(PORT), LOG_LEVEL: 'silent' },
+    // mock keeps the LLM endpoint keyless, offline and deterministic under test.
+    env: { ...process.env, PORT: String(PORT), LOG_LEVEL: 'silent', LLM_PROVIDER: 'mock' },
     stdio: ['ignore', 'ignore', 'inherit'],
   });
   await waitForApi(child);

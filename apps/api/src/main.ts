@@ -1,3 +1,5 @@
+// Must stay first: Sentry has to initialise before the libraries it instruments load.
+import './instrument';
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
@@ -7,13 +9,13 @@ import { env } from './env';
 import { buildOpenApiDoc } from './openapi';
 
 async function bootstrap() {
-  connect(env.DATABASE_URL);
+  connect(env().DATABASE_URL);
   await applyMigrations();
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(app.get(Logger));
   app.enableShutdownHooks();
   SwaggerModule.setup('docs', app, buildOpenApiDoc(app));
-  await app.listen(env.PORT);
+  await app.listen(env().PORT);
 }
 
 bootstrap();

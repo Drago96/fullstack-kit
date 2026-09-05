@@ -1,6 +1,37 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/ask": {
+      "post": {
+        "operationId": "AskController_ask",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerDto_Output"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Ask"
+        ]
+      }
+    },
     "/hello": {
       "get": {
         "operationId": "HelloController_hello",
@@ -105,6 +136,31 @@
   "servers": [],
   "components": {
     "schemas": {
+      "AskDto": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "prompt"
+        ]
+      },
+      "AnswerDto_Output": {
+        "type": "object",
+        "properties": {
+          "answer": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "answer"
+        ],
+        "additionalProperties": false
+      },
       "HelloResponseDto_Output": {
         "type": "object",
         "properties": {
